@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desain Sistem IEM · GPdI Victory Metro Permata</title>
+<meta name="description" content="IEM (In-Ear Monitor) system design for GPdI Victory Metro Permata — Phase 1: Musicians.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap">
+<style>
+/* =====================================================================
+   TOKENS
+   ===================================================================== */
+:root {
+  --bg: #B3B3B3;
+  --grid: rgba(255, 255, 255, .26);
+  --ink: #111111;
+  --ink-2: #2a2a2a;
+  --muted: #4a4a4a;
+  --paper: #F6F6F3;
+  --paper-grid: rgba(0, 0, 0, .045);
+  --band: #0B5FB0;
+  --own: #C2410C;
+  --iem: #7A2E9E;
+  --foh: #4A4A4A;
+  --warn: #B42318;
+  --ok: #1E7B34;
+  --accent: #FFD400;
+  --font: "Space Grotesk", "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --nav-h: 58px;
+  --radius: 14px;
+  --shadow: 6px 6px 0 #111;
+}
+@media (max-width: 760px) { :root { --nav-h: 96px; } }
+
+/* =====================================================================
+   BASE
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  overflow-x: hidden;
+}
+main { overflow-x: clip; }
+h1, h2, h3, h4 { line-height: 1.15; margin: 0 0 .5em; }
+p { margin: 0 0 1em; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+.wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 16px; position: relative; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--accent); color: var(--ink); padding: 8px 14px; border-radius: 8px; font-weight: 700; }
+.skip:focus { top: 12px; }
+
+/* =====================================================================
+   NAV
+   ===================================================================== */
+.nav { position: sticky; top: 0; z-index: 50; background: var(--ink); color: #fff; border-bottom: 3px solid #000; }
+.nav-inner { max-width: 1240px; margin: 0 auto; padding: 0 16px; min-height: var(--nav-h); display: flex; align-items: center; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700; white-space: nowrap; letter-spacing: .02em; }
+.brand svg { width: 20px; height: 20px; fill: var(--accent); }
+.nav-links { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a { display: block; padding: 8px 10px; text-decoration: none; font-size: 15px; white-space: nowrap; border-radius: 8px; color: #e8e8e8; }
+.nav-links a:hover { background: #2a2a2a; color: #fff; }
+.nav :focus-visible { outline-color: var(--accent); }
+.lang { display: flex; align-items: center; gap: 2px; border: 2px solid #fff; border-radius: 999px; padding: 2px; flex: none; }
+.lang button { background: transparent; border: 0; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 14px; cursor: pointer; color: #fff; }
+.lang button[aria-pressed="true"] { background: #fff; color: var(--ink); }
+.lang .sep { opacity: .5; font-size: 13px; }
+@media (max-width: 760px) {
+  .nav-inner { flex-wrap: wrap; gap: 4px 12px; padding-top: 8px; padding-bottom: 4px; }
+  .brand { flex: 1; }
+  .nav-links { order: 3; flex-basis: 100%; margin: 0 -16px; padding: 0 10px 4px; }
+  .nav-links a { font-size: 14px; padding: 6px 9px; }
+}
+
+/* =====================================================================
+   SECTIONS + STARBURST TITLES
+   ===================================================================== */
+.section { position: relative; padding: 72px 0; scroll-margin-top: var(--nav-h); overflow: hidden; }
+.section + .section { border-top: 2px dashed rgba(0, 0, 0, .18); }
+.sec-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.burst {
+  display: inline-block;
+  margin: 0;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  text-align: center;
+  font-size: clamp(1.45rem, 3.6vw, 2.3rem);
+  line-height: 1.05;
+  padding: 1.35em 2.3em;
+  max-width: 100%;
+  clip-path: polygon(50.0% 0.0%,58.2% 8.8%,69.1% 3.8%,73.3% 15.1%,85.4% 14.6%,84.9% 26.7%,96.2% 30.9%,91.2% 41.8%,100.0% 50.0%,91.2% 58.2%,96.2% 69.1%,84.9% 73.3%,85.4% 85.4%,73.3% 84.9%,69.1% 96.2%,58.2% 91.2%,50.0% 100.0%,41.8% 91.2%,30.9% 96.2%,26.7% 84.9%,14.6% 85.4%,15.1% 73.3%,3.8% 69.1%,8.8% 58.2%,0.0% 50.0%,8.8% 41.8%,3.8% 30.9%,15.1% 26.7%,14.6% 14.6%,26.7% 15.1%,30.9% 3.8%,41.8% 8.8%);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.burst-xl { font-size: clamp(2rem, 7vw, 4.4rem); padding: 1.3em 1.9em; }
+.chev { font-weight: 700; letter-spacing: .08em; color: var(--ink); font-size: 1.15rem; }
+.chev::before { content: ">>>>>"; }
+.chev-light { color: #fff; }
+.lead { font-size: 1.1rem; max-width: 760px; }
+.kicker { text-transform: uppercase; letter-spacing: .14em; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+
+/* =====================================================================
+   DECORATIONS (subtle)
+   ===================================================================== */
+.deco { position: absolute; pointer-events: none; z-index: 0; }
+.deco-arcs { width: 260px; height: 260px; opacity: .55; }
+.deco-star { width: 46px; height: 46px; opacity: .6; }
+.deco-star.dark { fill: #6a6a6a; }
+.deco-star.light { fill: #e4e4e4; }
+.deco-checker { height: 16px; width: 220px; opacity: .55;
+  background: conic-gradient(#111 25%, transparent 0 50%, #111 0 75%, transparent 0) 0 0 / 16px 16px; }
+.section > .wrap, .hero > .wrap { z-index: 1; }
+
+/* =====================================================================
+   HERO
+   ===================================================================== */
+.hero { position: relative; padding: 64px 0 80px; overflow: hidden; }
+.hero-inner { display: flex; flex-direction: column; align-items: flex-start; }
+.hero-sub { font-size: clamp(1.15rem, 2.6vw, 1.55rem); font-weight: 700; margin: 18px 0 10px; max-width: 760px; }
+.hero-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.chip { display: inline-block; background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 2px 12px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.chip-dark { background: var(--ink); color: #fff; }
+.tagline { font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 700; font-style: italic; color: #fff; text-shadow: 2px 2px 0 var(--ink); margin: 18px 0 8px; }
+.hero-lead { max-width: 640px; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 10px 18px; font-weight: 700; text-decoration: none; cursor: pointer; font-size: 15px; line-height: 1.2; }
+.btn:hover { background: #333; }
+.btn-ghost { background: #fff; color: var(--ink); }
+.btn-ghost:hover { background: #ececec; }
+.btn-sm { padding: 6px 14px; font-size: 14px; }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--ink); }
+
+/* =====================================================================
+   CARDS / PANELS
+   ===================================================================== */
+.card { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+.paper-grid {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--paper-grid) 1px, transparent 1px), linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Existing system */
+.sys-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.ch-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.ch-list li { background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 6px 10px; display: flex; gap: 10px; align-items: baseline; font-size: 15px; }
+.ch-list li.is-empty { background: transparent; border-style: dashed; color: var(--muted); }
+.ch-num { font-weight: 700; min-width: 52px; white-space: nowrap; }
+.note { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; background: #fff; border-left: 6px solid var(--ink); padding: 10px 14px; border-radius: 0 10px 10px 0; margin: 0; }
+
+/* Concept */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; margin-top: 8px; }
+.step h3 { font-size: 1.2rem; }
+.step-num { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: #fff; font-weight: 700; margin-bottom: 10px; }
+.step p { margin: 0; }
+.formula { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 26px; font-weight: 700; font-size: 1.1rem; }
+.formula .op { font-size: 1.6rem; line-height: 1; }
+.pill { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--ink); border-radius: 999px; padding: 6px 14px; }
+.swatch { width: 40px; height: 12px; flex: none; }
+
+/* Flow */
+.flow-tools { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; margin: 6px 0 14px; }
+.filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.filter-group .label { font-weight: 700; margin-right: 4px; }
+.legend { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend small { color: var(--muted); }
+.legend-title { font-weight: 700; font-size: 14px; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .1em; }
+.diagram-card { padding: 14px; }
+.diagram { display: block; width: 100%; height: auto; }
+.diagram-mobile { display: none; }
+.hint { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+@media (max-width: 900px) {
+  .diagram-desktop { display: none; }
+  .diagram-mobile { display: block; max-width: 520px; margin: 0 auto; }
+  .diagram-card { padding: 8px; }
+}
+
+/* SVG diagrams */
+.diagram text, .mini text, .sketch text { font-family: var(--font); }
+.node-box { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+.node-label { font-weight: 700; font-size: 13px; fill: var(--ink); }
+.node-sub { font-size: 10.5px; fill: #474747; }
+.node-ring { fill: none; stroke: none; }
+.kind-core .node-box { fill: var(--ink); }
+.kind-core .node-label { fill: #fff; }
+.kind-core .node-sub { fill: #d4d4d4; }
+.kind-source .node-box { fill: #FFF1E8; }
+.kind-iem .node-box { fill: #F5EDF9; stroke: var(--iem); stroke-width: 2.5; }
+.kind-foh .node-box { fill: #E1E1E1; stroke: var(--foh); }
+.kind-future .node-box { fill: #ECECEC; stroke: #7d7d7d; stroke-dasharray: 5 4; }
+.kind-future .node-label, .kind-future .node-sub { fill: #5d5d5d; }
+.kind-changing .node-box { stroke: var(--band); stroke-width: 4; }
+.node[tabindex] { cursor: pointer; outline: none; }
+.node[tabindex]:hover .node-box { stroke-width: 3.5; }
+.node:focus-visible .node-ring, .node.is-selected .node-ring { stroke: var(--ink); stroke-width: 3; stroke-dasharray: 6 4; }
+.lane rect { fill: rgba(255, 255, 255, .55); stroke: rgba(0, 0, 0, .18); stroke-width: 1.5; }
+.lane-future rect { fill: none; stroke-dasharray: 6 5; }
+.lane-title { font-size: 11px; font-weight: 700; letter-spacing: .12em; fill: var(--muted); }
+.edge-tag rect { fill: var(--paper); stroke-width: 1.5; }
+.edge-tag text { font-size: 10.5px; font-weight: 700; text-anchor: middle; }
+.edge.is-future { opacity: .45; }
+.edge-strong path { stroke-width: 5; }
+.badge rect { fill: var(--band); }
+.badge text { fill: #fff; font-size: 11px; font-weight: 700; text-anchor: middle; }
+.node, .edge, .edge-tag { transition: opacity .18s ease; }
+.is-tracing .node, .is-tracing .edge, .is-tracing .edge-tag { opacity: .14; }
+.is-tracing .node.is-hot, .is-tracing .edge.is-hot, .is-tracing .edge-tag.is-hot { opacity: 1; }
+.is-tracing .edge.is-hot path { stroke-width: 4.5; }
+
+/* Musician cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); gap: 24px; }
+.mcard-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.mcard-head h3 { font-size: 1.5rem; margin: 0; }
+.mini-wrap { border: 2px solid var(--ink); border-radius: 10px; padding: 6px; margin-bottom: 14px; }
+.mini { display: block; width: 100%; max-width: 460px; height: auto; margin: 0 auto; }
+.mini-mobile { display: none; max-width: 400px; }
+@media (max-width: 640px) { .mini-desktop { display: none; } .mini-mobile { display: block; } }
+@media print { .mini-desktop { display: block !important; } .mini-mobile { display: none !important; } }
+.mtable { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.mtable th, .mtable td { text-align: left; vertical-align: top; padding: 8px; border: 1.5px solid var(--ink); }
+.mtable th { background: var(--ink); color: #fff; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+.mtable td { background: #fff; }
+.req { margin-top: 18px; }
+@media (max-width: 640px) {
+  .mtable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .mtable, .mtable tbody, .mtable tr, .mtable td { display: block; width: 100%; }
+  .mtable td { border-top-width: 0; }
+  .mtable td:first-child { border-top-width: 1.5px; border-radius: 8px 8px 0 0; }
+  .mtable td:last-child { border-radius: 0 0 8px 8px; }
+  .mtable td::before { content: attr(data-label); display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 2px; }
+}
+
+/* Pitfalls */
+.pits { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 24px; }
+.pit { border-top: 10px solid var(--warn); scroll-margin-top: calc(var(--nav-h) + 16px); }
+.pit-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 10px; }
+.pit-icon { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--warn); display: grid; place-items: center; }
+.pit-icon svg { width: 26px; height: 26px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pit-num { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--warn); }
+.pit h3 { font-size: 1.15rem; margin: 2px 0 0; }
+.pit-fix { background: #fff; border: 2px solid var(--ok); border-radius: 10px; padding: 10px 12px; }
+.pit-fix strong:first-child { color: var(--ok); }
+.sketch { display: block; width: 100%; max-width: 300px; height: auto; margin-top: 4px; }
+.sketch .sk-box { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+.sketch .sk-t { font-size: 11px; font-weight: 700; text-anchor: middle; fill: var(--ink); }
+
+/* Checklist */
+.check-card { max-width: 860px; }
+.progress-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.bar { flex: 1; min-width: 160px; height: 16px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; background: var(--band); transition: width .25s ease; }
+.progress-text { font-weight: 700; min-width: 110px; }
+.check-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.check-item { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 10px 12px; }
+.check-item input { appearance: none; -webkit-appearance: none; flex: none; width: 24px; height: 24px; margin: 1px 0 0; border: 2px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; display: grid; place-items: center; }
+.check-item input::after { content: ""; width: 7px; height: 13px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); opacity: 0; }
+.check-item input:checked { background: var(--ok); border-color: var(--ok); }
+.check-item input:checked::after { opacity: 1; }
+.check-item label { cursor: pointer; flex: 1; }
+.check-item.is-done label { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); }
+.qty { font-weight: 700; }
+
+/* Phase 2 */
+.p2-card { max-width: 860px; border-style: dashed; }
+.p2-card ul { margin: 0 0 18px; padding-left: 1.2em; }
+.p2-card li { margin-bottom: 6px; }
+
+/* Footer */
+.footer { background: var(--ink); color: #fff; padding: 34px 0 40px; position: relative; }
+.footer .deco-checker { position: absolute; top: -8px; left: 0; width: 100%; opacity: 1; height: 16px;
+  background: conic-gradient(#111 25%, #fff 0 50%, #111 0 75%, #fff 0) 0 0 / 16px 16px; }
+.footer p { margin: 0; font-weight: 700; letter-spacing: .02em; }
+
+/* =====================================================================
+   SIDE PANEL / BOTTOM SHEET
+   ===================================================================== */
+.panel {
+  position: fixed; z-index: 60;
+  top: calc(var(--nav-h) + 14px); right: 14px; bottom: 14px;
+  width: min(410px, calc(100vw - 28px));
+  background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow-y: auto; overscroll-behavior: contain;
+  transform: translateX(calc(100% + 30px)); visibility: hidden;
+  transition: transform .25s ease, visibility 0s linear .25s;
+}
+.panel.open { transform: none; visibility: visible; transition: transform .25s ease, visibility 0s; }
+.panel-head { position: sticky; top: 0; background: var(--ink); color: #fff; padding: 16px 16px 14px 18px; display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.panel-head h3 { font-size: 1.35rem; margin: 2px 0 2px; }
+.panel-head p { margin: 0; font-size: 14px; color: #d6d6d6; }
+.panel-kicker { text-transform: uppercase; letter-spacing: .12em; font-size: 11.5px !important; font-weight: 700; color: var(--accent) !important; }
+.icon-btn { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; background: transparent; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.icon-btn:hover { background: #fff; color: var(--ink); }
+.panel-body { padding: 16px 18px 24px; font-size: 15.5px; }
+.panel-body h4 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .12em; margin: 18px 0 8px; }
+.panel-body h4:first-child { margin-top: 0; }
+.conn-list, .watch-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.conn { background: #fff; border: 1.5px solid var(--ink); border-radius: 10px; padding: 8px 10px; }
+.conn-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.conn-dir { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.conn-dev { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; text-align: left; }
+.conn-meta { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; font-size: 14px; }
+.sig-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.sig-pill .swatch { width: 28px; height: 10px; }
+.watch-list li { background: #fff; border-left: 5px solid var(--warn); border-radius: 0 8px 8px 0; padding: 7px 10px; }
+.warn-h { color: var(--warn); }
+.pit-link { font-weight: 700; }
+@media (max-width: 760px) {
+  .panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 62vh; border-radius: 18px 18px 0 0; border-bottom: 0; box-shadow: 0 -6px 0 rgba(0, 0, 0, .9); transform: translateY(105%); }
+  .panel-head::before { content: ""; position: absolute; top: 6px; left: 50%; width: 44px; height: 4px; margin-left: -22px; background: #666; border-radius: 4px; }
+  .panel-head { padding-top: 20px; }
+}
+
+/* =====================================================================
+   PRINT (A4 landscape)
+   ===================================================================== */
+@page { size: A4 landscape; margin: 10mm; }
+@media print {
+  :root { --nav-h: 0px; }
+  body { background: #fff; font-size: 11pt; }
+  .nav, .lang, .skip, .panel, .deco, .flow-tools .filter-group, #p2-toggle, #p2-show, #chk-reset, .hero-cta, .hint { display: none !important; }
+  .section { padding: 18px 0; overflow: visible; break-inside: auto; }
+  .section + .section { border-top: 0; }
+  .hero { padding: 10px 0 18px; }
+  .wrap { max-width: none; padding: 0; }
+  .card { box-shadow: none; break-inside: avoid; }
+  .diagram-desktop { display: block !important; }
+  .diagram-mobile { display: none !important; }
+  #flow, #musicians, #pitfalls, #checklist { break-before: page; }
+  .burst, .kind-core .node-box, .mtable th, .footer, .pit-icon, .chip-dark, .check-item input:checked, .bar span, .lane rect, .badge rect { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tagline { color: var(--ink); text-shadow: none; }
+  .is-tracing .node, .is-tracing .edge, .is-tracing .edge-tag { opacity: 1 !important; }
+  .cards, .pits { gap: 12px; }
+  .footer { padding: 12px 0; }
+  a { text-decoration: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Decorative symbols (no text) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="d-star" viewBox="-50 -50 100 100">
+      <polygon points="0.0,-50.0 8.0,-19.4 35.4,-35.4 19.4,-8.0 50.0,0.0 19.4,8.0 35.4,35.4 8.0,19.4 0.0,50.0 -8.0,19.4 -35.4,35.4 -19.4,8.0 -50.0,0.0 -19.4,-8.0 -35.4,-35.4 -8.0,-19.4"/>
+    </symbol>
+    <symbol id="d-arcs" viewBox="0 0 200 200">
+      <g fill="none" stroke-linecap="round" stroke-width="13">
+        <path d="M154 200 A46 46 0 0 1 200 154" stroke="#6a6a6a"/>
+        <path d="M126 200 A74 74 0 0 1 200 126" stroke="#e2e2e2"/>
+        <path d="M98 200 A102 102 0 0 1 200 98" stroke="#6a6a6a"/>
+        <path d="M70 200 A130 130 0 0 1 200 70" stroke="#e2e2e2"/>
+        <path d="M42 200 A158 158 0 0 1 200 42" stroke="#6a6a6a"/>
+        <path d="M14 200 A186 186 0 0 1 200 14" stroke="#e2e2e2"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main" data-i18n="skip"></a>
+
+<nav class="nav" data-i18n-aria="nav_aria">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <svg aria-hidden="true" focusable="false"><use href="#d-star"/></svg>
+      <span data-i18n="nav_brand"></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#system" data-i18n="nav_system"></a></li>
+      <li><a href="#concept" data-i18n="nav_concept"></a></li>
+      <li><a href="#flow" data-i18n="nav_flow"></a></li>
+      <li><a href="#musicians" data-i18n="nav_musicians"></a></li>
+      <li><a href="#pitfalls" data-i18n="nav_pitfalls"></a></li>
+      <li><a href="#checklist" data-i18n="nav_checklist"></a></li>
+      <li><a href="#phase2" data-i18n="nav_phase2"></a></li>
+    </ul>
+    <div class="lang" role="group" data-i18n-aria="lang_group">
+      <button type="button" data-lang="en" aria-pressed="false" data-i18n-aria="lang_en">EN</button>
+      <span class="sep" aria-hidden="true">|</span>
+      <button type="button" data-lang="id" aria-pressed="true" data-i18n-aria="lang_id">ID</button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+  <!-- 1. HERO -->
+  <header class="hero" id="top">
+    <svg class="deco deco-arcs" style="top:-40px;right:-40px;transform:scaleY(-1)" aria-hidden="true"><use href="#d-arcs"/></svg>
+    <svg class="deco deco-arcs" style="bottom:-70px;left:-70px;transform:scaleX(-1);width:200px;height:200px;opacity:.4" aria-hidden="true"><use href="#d-arcs"/></svg>
+    <svg class="deco deco-star light" style="top:40px;right:250px" aria-hidden="true"><use href="#d-star"/></svg>
+    <svg class="deco deco-star dark" style="bottom:60px;right:12%;width:30px;height:30px" aria-hidden="true"><use href="#d-star"/></svg>
+    <div class="deco deco-checker" style="bottom:22px;right:0"></div>
+    <div class="wrap hero-inner">
+      <p class="kicker" data-i18n="hero_kicker"></p>
+      <h1 class="burst burst-xl"><span data-i18n="hero_title"></span></h1>
+      <p class="hero-sub" data-i18n="hero_sub"></p>
+      <p class="hero-meta"><span class="chip chip-dark" data-i18n="hero_date"></span><span class="chev" aria-hidden="true"></span></p>
+      <p class="tagline" data-i18n="hero_tagline"></p>
+      <p class="hero-lead" data-i18n="hero_lead"></p>
+      <div class="hero-cta">
+        <a class="btn" href="#flow" data-i18n="hero_cta_flow"></a>
+        <a class="btn btn-ghost" href="#checklist" data-i18n="hero_cta_check"></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. EXISTING SYSTEM -->
+  <section class="section" id="system" aria-labelledby="h-system">
+    <svg class="deco deco-star dark" style="top:30px;right:6%" aria-hidden="true"><use href="#d-star"/></svg>
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-system"><span data-i18n="sys_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <p class="lead" data-i18n="sys_lead"></p>
+      <div class="sys-grid">
+        <div class="card paper-grid diagram-card">
+          <svg id="sys-desktop" class="diagram diagram-desktop" role="img"></svg>
+          <svg id="sys-mobile" class="diagram diagram-mobile" role="img"></svg>
+        </div>
+        <p class="note" data-i18n="sys_snakebox"></p>
+        <div>
+          <h3 data-i18n="sys_inputs"></h3>
+          <ul class="ch-list" id="ch-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. CONCEPT -->
+  <section class="section" id="concept" aria-labelledby="h-concept">
+    <svg class="deco deco-arcs" style="bottom:-60px;right:-60px;width:220px;height:220px;opacity:.4" aria-hidden="true"><use href="#d-arcs"/></svg>
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-concept"><span data-i18n="concept_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <p class="lead" data-i18n="concept_lead"></p>
+      <div class="steps">
+        <article class="card step"><span class="step-num" aria-hidden="true">1</span><h3 data-i18n="concept_s1_t"></h3><p data-i18n="concept_s1_d"></p></article>
+        <article class="card step"><span class="step-num" aria-hidden="true">2</span><h3 data-i18n="concept_s2_t"></h3><p data-i18n="concept_s2_d"></p></article>
+        <article class="card step"><span class="step-num" aria-hidden="true">3</span><h3 data-i18n="concept_s3_t"></h3><p data-i18n="concept_s3_d"></p></article>
+      </div>
+      <p class="formula" id="formula"></p>
+    </div>
+  </section>
+
+  <!-- 4. MAIN SIGNAL FLOW -->
+  <section class="section" id="flow" aria-labelledby="h-flow">
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-flow"><span data-i18n="flow_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <p class="lead" data-i18n="flow_lead"></p>
+      <div class="flow-tools">
+        <div class="filter-group" role="group" aria-labelledby="filter-label">
+          <span class="label" id="filter-label" data-i18n="flow_filter_label"></span>
+          <span id="filters" class="filter-group"></span>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="p2-toggle" aria-pressed="false"></button>
+      </div>
+      <p class="legend-title" data-i18n="legend_title"></p>
+      <ul class="legend" id="legend"></ul>
+      <div class="card paper-grid diagram-card">
+        <svg id="flow-desktop" class="diagram diagram-desktop diagram-main" role="group"></svg>
+        <svg id="flow-mobile" class="diagram diagram-mobile diagram-main" role="group"></svg>
+      </div>
+      <p class="hint" data-i18n="flow_hint"></p>
+    </div>
+  </section>
+
+  <!-- 5. PER-MUSICIAN CARDS -->
+  <section class="section" id="musicians" aria-labelledby="h-musicians">
+    <svg class="deco deco-star light" style="top:40px;right:8%;width:36px;height:36px" aria-hidden="true"><use href="#d-star"/></svg>
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-musicians"><span data-i18n="mus_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <p class="lead" data-i18n="mus_lead"></p>
+      <div class="cards" id="cards"></div>
+      <p class="note req" data-i18n="mus_req"></p>
+    </div>
+  </section>
+
+  <!-- 6. PITFALLS -->
+  <section class="section" id="pitfalls" aria-labelledby="h-pitfalls">
+    <div class="deco deco-checker" style="top:26px;left:0;width:160px"></div>
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-pitfalls"><span data-i18n="pit_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <p class="lead" data-i18n="pit_lead"></p>
+      <div class="pits" id="pitfalls-list"></div>
+    </div>
+  </section>
+
+  <!-- 7. CHECKLIST -->
+  <section class="section" id="checklist" aria-labelledby="h-checklist">
+    <svg class="deco deco-arcs" style="top:-60px;right:-60px;width:220px;height:220px;opacity:.4;transform:scaleY(-1)" aria-hidden="true"><use href="#d-arcs"/></svg>
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-checklist"><span data-i18n="chk_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <p class="lead" data-i18n="chk_lead"></p>
+      <div class="card check-card">
+        <div class="progress-row">
+          <div class="bar" id="chk-bar" role="progressbar" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" data-i18n-aria="chk_progress_aria"><span></span></div>
+          <span class="progress-text" id="chk-text" aria-live="polite"></span>
+          <button type="button" class="btn btn-ghost btn-sm" id="chk-reset" data-i18n="chk_reset"></button>
+        </div>
+        <ul class="check-list" id="check-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. PHASE 2 -->
+  <section class="section" id="phase2" aria-labelledby="h-phase2">
+    <svg class="deco deco-star dark" style="bottom:40px;right:10%" aria-hidden="true"><use href="#d-star"/></svg>
+    <div class="wrap">
+      <div class="sec-head"><h2 class="burst" id="h-phase2"><span data-i18n="p2_title"></span></h2><span class="chev" aria-hidden="true"></span></div>
+      <div class="card p2-card">
+        <p data-i18n="p2_lead"></p>
+        <ul>
+          <li data-i18n="p2_opt1"></li>
+          <li data-i18n="p2_opt2"></li>
+        </ul>
+        <button type="button" class="btn" id="p2-show" aria-pressed="false"></button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="deco-checker" aria-hidden="true"></div>
+  <div class="wrap"><p data-i18n="footer"></p></div>
+</footer>
+
+<!-- Device detail panel (side panel on desktop, bottom sheet on mobile) -->
+<aside class="panel" id="panel" role="dialog" aria-modal="false" aria-labelledby="panel-title">
+  <div class="panel-head">
+    <div>
+      <p class="panel-kicker" id="panel-kicker"></p>
+      <h3 id="panel-title"></h3>
+      <p id="panel-sub"></p>
+    </div>
+    <button type="button" class="icon-btn" id="panel-close" data-i18n-aria="panel_close"><span aria-hidden="true">×</span></button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</aside>
+
+<script>
+'use strict';
+
+/* =========================================================================
+   1. SYSTEM DATA — edit this object to change the design.
+   Every user-facing string carries both languages: { en: '…', id: '…' }.
+   Diagrams, cards, panel, pitfalls and checklist all render from here.
+   ========================================================================= */
+const SYSTEM = {
+
+  /* ---- Signal types: colour AND line style, so meaning never relies on colour alone ---- */
+  signals: {
+    band: { color: '#0B5FB0', dash: '',         width: 3.5, cap: 'butt',
+            label: { en: 'Band mix (Group 1-2)', id: 'Mix band (Group 1-2)' },
+            line:  { en: 'solid line', id: 'garis penuh' } },
+    own:  { color: '#C2410C', dash: '9 6',      width: 3,   cap: 'butt',
+            label: { en: 'Own instrument', id: 'Instrumen sendiri' },
+            line:  { en: 'dashed line', id: 'garis putus-putus' } },
+    iem:  { color: '#7A2E9E', dash: '0.1 7',    width: 4.5, cap: 'round',
+            label: { en: 'IEM / headphone out', id: 'Output IEM / headphone' },
+            line:  { en: 'dotted line', id: 'garis titik-titik' } },
+    foh:  { color: '#4A4A4A', dash: '12 5 2 5', width: 2.5, cap: 'butt',
+            label: { en: 'FOH feed (to main mixer)', id: 'Kiriman FOH (ke mixer utama)' },
+            line:  { en: 'dash-dot line', id: 'garis strip-titik' } }
+  },
+
+  /* ---- Existing system (section 2) ---- */
+  existing: {
+    stage:  { label: { en: 'Stage', id: 'Panggung' }, sub: { en: 'Mics & instruments', id: 'Mic & instrumen' } },
+    snake:  { label: { en: 'Snake Box', id: 'Snake Box' }, sub: { en: 'Stage (front) → mixer (back)', id: 'Panggung (depan) → mixer (belakang)' } },
+    mixer:  { label: { en: 'Yamaha MG166CX', id: 'Yamaha MG166CX' }, sub: { en: 'Main mixer', id: 'Mixer utama' } },
+    inputs: [
+      { ch: '1',     name: { en: 'Worship Leader', id: 'Worship Leader' } },
+      { ch: '2–5',   name: { en: 'Singer', id: 'Singer' } },
+      { ch: '6',     name: { en: 'Pendeta', id: 'Pendeta' } },
+      { ch: '7',     name: { en: 'Bass', id: 'Bass' } },
+      { ch: '8',     name: { en: 'Gitar', id: 'Gitar' } },
+      { ch: '9/10',  name: { en: 'Drum (electronic kit, stereo)', id: 'Drum (kit elektrik, stereo)' } },
+      { ch: '11/12', name: { en: 'Keyboard', id: 'Keyboard' } },
+      { ch: '13/14', name: { en: 'Empty', id: 'Kosong' }, empty: true },
+      { ch: '15/16', name: { en: 'PC Input', id: 'Input PC' } }
+    ],
+    outputs: [
+      { id: 'audience', signal: 'foh',
+        port: { en: 'Stereo XLR L&R', id: 'XLR stereo L&R' }, via: { en: 'Snake A & B', id: 'Snake A & B' },
+        dest: { en: 'Audience Speakers L&R', id: 'Speaker Jemaat L&R' } },
+      { id: 'monitor', signal: 'foh',
+        port: { en: 'AUX 1', id: 'AUX 1' }, via: { en: 'Snake C', id: 'Snake C' },
+        dest: { en: 'Monitor Speaker', id: 'Speaker Monitor' } },
+      { id: 'stream', signal: 'foh',
+        port: { en: 'AUX 2', id: 'AUX 2' }, via: null,
+        dest: { en: 'Live Streaming', id: 'Live Streaming' } },
+      { id: 'music', signal: 'band', changing: true,
+        port: { en: 'Group 1-2 · 1 XLR, mono', id: 'Group 1-2 · 1 XLR, mono' }, via: { en: 'Snake D', id: 'Snake D' },
+        dest: { en: 'Music Speaker (stage)', id: 'Music Speaker (panggung)' } }
+    ]
+  },
+
+  /* ---- Devices in the IEM design.
+     kind:     core | device | source | iem | foh | future   (visual style)
+     musician: which musician lane it belongs to (null = shared chain)
+     slot:     position inside a musician lane (src | di | recv | iem | foh)
+     phase:    2 = future (shown only with "Show Phase 2")
+     pitfalls: numbers of related traps (section 6) ---- */
+  devices: [
+    { id: 'mixer', kind: 'core',
+      label: { en: 'MG166CX', id: 'MG166CX' },
+      sub:   { en: 'Main mixer · Group 1-2', id: 'Mixer utama · Group 1-2' },
+      role:  { en: 'The Yamaha MG166CX main mixer at the back. Group 1-2 carries the music mix that already feeds the stage Music Speaker. The IEM system simply taps that same signal.',
+               id: 'Mixer utama Yamaha MG166CX di belakang. Group 1-2 berisi mix musik yang selama ini sudah dikirim ke Music Speaker di panggung. Sistem IEM tinggal ikut mengambil sinyal yang sama.' },
+      notes: [],
+      pitfalls: [4, 3] },
+
+    // TODO: confirm which Group 1-2 output jack/cable feeds Snake D at the mixer end (existing wiring, not part of this design).
+    { id: 'snakeD', kind: 'device',
+      label: { en: 'Snake D', id: 'Snake D' },
+      sub:   { en: '1 XLR line · mono', id: '1 jalur XLR · mono' },
+      role:  { en: 'One XLR line in the snake that carries Group 1-2 (mono) from the mixer at the back to the stage. This is the line we are changing: on stage it now gets split in two.',
+               id: 'Satu jalur XLR di snake yang membawa Group 1-2 (mono) dari mixer di belakang ke panggung. Jalur inilah yang kita ubah: di panggung sinyalnya sekarang dibagi dua.' },
+      notes: [],
+      pitfalls: [4] },
+
+    { id: 'splitter', kind: 'device',
+      label: { en: 'XLR Splitter', id: 'Splitter XLR' },
+      sub:   { en: '1F → 2M', id: '1F → 2M' },
+      role:  { en: 'Sits at the Snake D output on stage. One female XLR in, two male XLR out. Leg A keeps feeding the Music Speaker, Leg B goes to the headphone amp.',
+               id: 'Dipasang di ujung output Snake D di panggung. Satu input XLR female, dua output XLR male. Leg A tetap ke Music Speaker, Leg B ke headphone amp.' },
+      notes: [],
+      pitfalls: [] },
+
+    { id: 'speaker', kind: 'device',
+      label: { en: 'Music Speaker', id: 'Music Speaker' },
+      sub:   { en: 'Stage monitor · unchanged', id: 'Monitor panggung · tetap' },
+      role:  { en: 'The existing stage monitor for the musicians. It stays exactly as it is, now fed by Leg A of the splitter, so each musician can choose IEM, speaker, or both.',
+               id: 'Monitor panggung yang sudah ada untuk pemain musik. Tetap seperti sekarang, sekarang dapat sinyal dari Leg A splitter, jadi tiap pemain bisa pilih IEM, speaker, atau dua-duanya.' },
+      notes: [],
+      pitfalls: [] },
+
+    { id: 'adapter', kind: 'device',
+      label: { en: 'XLR F → TS', id: 'XLR F → TS' },
+      sub:   { en: '+ mono-to-stereo adapter', id: '+ adaptor mono-to-stereo' },
+      role:  { en: 'Turns the mono XLR from Leg B into a 1/4" plug for the HA800, with the signal on both left and right. Use an XLR F → 1/4" TS cable (pin 2 = tip, pins 1+3 = sleeve) plus a mono-to-stereo adapter that bridges tip and ring, or one custom cable with pin 2 wired to both tip and ring.',
+               id: 'Mengubah XLR mono dari Leg B jadi jack 1/4" untuk HA800, dengan sinyal di kiri dan kanan. Pakai kabel XLR F → 1/4" TS (pin 2 = tip, pin 1+3 = sleeve) ditambah adaptor mono-to-stereo yang menyambung tip dan ring, atau satu kabel custom dengan pin 2 disambung ke tip dan ring sekaligus.' },
+      notes: [ { en: 'Do **not** use a balanced XLR → TRS cable here.', id: '**Jangan** pakai kabel balanced XLR → TRS di sini.' } ],
+      pitfalls: [1] },
+
+    { id: 'ha800', kind: 'core',
+      label: { en: 'TaffStudio HA800', id: 'TaffStudio HA800' },
+      sub:   { en: '1 stereo in → 8 phones out', id: '1 input stereo → 8 output phones' },
+      role:  { en: 'TaffStudio HA800 headphone amp. One stereo 1/4" input feeds 8 headphone outputs, each with its own volume knob. Out 1–4 go to the musicians; Out 5–8 stay spare for Phase 2.',
+               id: 'Headphone amp TaffStudio HA800. Satu input stereo 1/4" dibagi ke 8 output headphone, masing-masing punya knob volume sendiri. Out 1–4 untuk pemain musik, Out 5–8 disimpan untuk Fase 2.' },
+      notes: [ { en: 'Keep the knob at about **half** when an output feeds a personal mixer.', id: 'Knob cukup di sekitar **setengah** kalau output-nya masuk ke mixer pribadi.' },
+               { en: 'Power: 12 V adapter, from the power strip at the stage.', id: 'Power: adaptor 12 V, dari colokan listrik di panggung.' } ],
+      pitfalls: [6, 2] },
+
+    /* --- Drum lane --- */
+    { id: 'module_drum', musician: 'drum', slot: 'recv', kind: 'device',
+      label: { en: 'E-drum module', id: 'Modul e-drum' },
+      sub:   { en: 'Mix In · Phones · Main L/R', id: 'Mix In · Phones · Main L/R' },
+      role:  { en: 'The electronic drum module. The band mix comes in at Mix In, the kit sound is already inside, and the IEM plugs into the module\'s Phones. Band volume is the HA800 knob for Out 1; kit volume is the module itself. Main L/R still goes to FOH on Ch 9/10.',
+               id: 'Modul drum elektrik. Mix band masuk lewat Mix In, suara kit sudah ada di dalam modul, dan IEM dicolok ke Phones modul. Volume band diatur dari knob HA800 Out 1, volume kit dari modulnya sendiri. Main L/R tetap ke FOH di Ch 9/10.' },
+      notes: [ { en: 'Set Mix In to **Phones only**, never to Main Out.', id: 'Atur Mix In ke **Phones saja**, jangan pernah ke Main Out.' },
+               { en: 'Check whether Mix In is a 1/4" TRS or a 3.5 mm jack.', id: 'Cek dulu Mix In-nya jack 1/4" TRS atau 3.5 mm.' } ],
+      pitfalls: [3] },
+    { id: 'iem_drum', musician: 'drum', slot: 'iem', kind: 'iem',
+      label: { en: 'IEM · Drum', id: 'IEM · Drum' },
+      sub:   { en: 'Wired in-ear', id: 'In-ear kabel' },
+      role:  { en: 'The drummer\'s wired in-ear monitor, plugged into the module\'s Phones out. Add a headphone extension cable if needed.',
+               id: 'In-ear monitor kabel untuk drummer, dicolok ke Phones modul. Tambah kabel extension headphone kalau perlu.' },
+      notes: [ { en: 'Start at zero volume, then bring it up.', id: 'Mulai dari volume nol, baru dinaikkan.' } ],
+      pitfalls: [6] },
+    { id: 'foh_drum', musician: 'drum', slot: 'foh', kind: 'foh',
+      label: { en: 'FOH · Ch 9/10', id: 'FOH · Ch 9/10' },
+      sub:   { en: 'MG166CX via Snake Box', id: 'MG166CX lewat Snake Box' },
+      role:  { en: 'Main mixer input Ch 9/10, reached through the Snake Box. The module\'s Main L/R feeds it exactly as today.',
+               id: 'Input mixer utama Ch 9/10, lewat Snake Box. Main L/R modul masuk ke sini sama seperti sekarang.' },
+      notes: [], pitfalls: [3] },
+
+    /* --- Keyboard lane --- */
+    { id: 'src_kb', musician: 'keyboard', slot: 'src', kind: 'source',
+      label: { en: 'Keyboard', id: 'Keyboard' },
+      sub:   { en: 'Main L/R + Phones out', id: 'Main L/R + Phones out' },
+      role:  { en: 'The keyboard uses two outputs: Main L/R goes to FOH (Ch 11/12) as today, and Phones out feeds the personal mixer through a TRS → 2× TS Y-cable.',
+               id: 'Keyboard pakai dua output: Main L/R tetap ke FOH (Ch 11/12) seperti sekarang, dan Phones out masuk ke mixer pribadi lewat kabel Y TRS → 2× TS.' },
+      notes: [ { en: 'Never feed the band mix into the keyboard\'s **Audio In**.', id: 'Jangan pernah masukkan mix band ke **Audio In** keyboard.' } ],
+      pitfalls: [3] },
+    { id: 'pm_kb', musician: 'keyboard', slot: 'recv', kind: 'device',
+      label: { en: 'Personal mixer', id: 'Mixer pribadi' },
+      sub:   { en: 'Band + keyboard → Phones', id: 'Band + keyboard → Phones' },
+      role:  { en: 'Small personal mixer for the keyboard player. The band mix (HA800 Out 2) comes into a stereo channel, the keyboard\'s Phones out into another channel. One fader for the band, one for the keyboard; the IEM plugs into its Phones out.',
+               id: 'Mixer kecil pribadi untuk pemain keyboard. Mix band (HA800 Out 2) masuk ke channel stereo, Phones out keyboard masuk ke channel lain. Satu fader untuk band, satu untuk keyboard; IEM dicolok ke Phones mixer ini.' },
+      notes: [ { en: 'Needs at least 1 stereo line channel + 1 more channel, and a headphone output.', id: 'Minimal punya 1 channel stereo line + 1 channel lagi, dan output headphone.' } ],
+      pitfalls: [2] },
+    { id: 'iem_kb', musician: 'keyboard', slot: 'iem', kind: 'iem',
+      label: { en: 'IEM · Keyboard', id: 'IEM · Keyboard' },
+      sub:   { en: 'Wired in-ear', id: 'In-ear kabel' },
+      role:  { en: 'The keyboard player\'s wired in-ear monitor, plugged into the personal mixer\'s Phones out. Add a headphone extension cable if needed.',
+               id: 'In-ear monitor kabel untuk pemain keyboard, dicolok ke Phones mixer pribadi. Tambah kabel extension headphone kalau perlu.' },
+      notes: [ { en: 'Start at zero volume, then bring it up.', id: 'Mulai dari volume nol, baru dinaikkan.' } ],
+      pitfalls: [6] },
+    { id: 'foh_kb', musician: 'keyboard', slot: 'foh', kind: 'foh',
+      label: { en: 'FOH · Ch 11/12', id: 'FOH · Ch 11/12' },
+      sub:   { en: 'MG166CX via Snake Box', id: 'MG166CX lewat Snake Box' },
+      role:  { en: 'Main mixer input Ch 11/12, reached through the Snake Box. The keyboard\'s Main L/R feeds it exactly as today.',
+               id: 'Input mixer utama Ch 11/12, lewat Snake Box. Main L/R keyboard masuk ke sini sama seperti sekarang.' },
+      notes: [], pitfalls: [] },
+
+    /* --- Bass lane --- */
+    { id: 'src_bass', musician: 'bass', slot: 'src', kind: 'source',
+      label: { en: 'Bass', id: 'Bass' },
+      sub:   { en: 'Instrument', id: 'Instrumen' },
+      role:  { en: 'The bass. Plugs into the DI box as usual.', id: 'Bass. Dicolok ke DI box seperti biasa.' },
+      notes: [], pitfalls: [] },
+    { id: 'di_bass', musician: 'bass', slot: 'di', kind: 'device',
+      label: { en: 'DI box', id: 'DI box' },
+      sub:   { en: 'XLR + Thru', id: 'XLR + Thru' },
+      role:  { en: 'DI box with a Thru output. The XLR out still goes to FOH (Ch 7), and Thru sends the same bass signal to the personal mixer.',
+               id: 'DI box yang punya output Thru. Output XLR tetap ke FOH (Ch 7), dan Thru mengirim sinyal bass yang sama ke mixer pribadi.' },
+      notes: [ { en: 'Hum? Try the **ground-lift** switch first.', id: 'Ada dengung? Coba switch **ground-lift** dulu.' } ],
+      pitfalls: [5] },
+    { id: 'pm_bass', musician: 'bass', slot: 'recv', kind: 'device',
+      label: { en: 'Personal mixer', id: 'Mixer pribadi' },
+      sub:   { en: 'Band + bass → Phones', id: 'Band + bass → Phones' },
+      role:  { en: 'Small personal mixer for the bass player. The band mix (HA800 Out 3) comes into a stereo channel, the DI box Thru into another channel. One fader for the band, one for the bass; the IEM plugs into its Phones out.',
+               id: 'Mixer kecil pribadi untuk pemain bass. Mix band (HA800 Out 3) masuk ke channel stereo, Thru dari DI box masuk ke channel lain. Satu fader untuk band, satu untuk bass; IEM dicolok ke Phones mixer ini.' },
+      notes: [ { en: 'Needs at least 1 stereo line channel + 1 more channel, and a headphone output.', id: 'Minimal punya 1 channel stereo line + 1 channel lagi, dan output headphone.' } ],
+      pitfalls: [2] },
+    { id: 'iem_bass', musician: 'bass', slot: 'iem', kind: 'iem',
+      label: { en: 'IEM · Bass', id: 'IEM · Bass' },
+      sub:   { en: 'Wired in-ear', id: 'In-ear kabel' },
+      role:  { en: 'The bass player\'s wired in-ear monitor, plugged into the personal mixer\'s Phones out. Add a headphone extension cable if needed.',
+               id: 'In-ear monitor kabel untuk pemain bass, dicolok ke Phones mixer pribadi. Tambah kabel extension headphone kalau perlu.' },
+      notes: [ { en: 'Start at zero volume, then bring it up.', id: 'Mulai dari volume nol, baru dinaikkan.' } ],
+      pitfalls: [6] },
+    { id: 'foh_bass', musician: 'bass', slot: 'foh', kind: 'foh',
+      label: { en: 'FOH · Ch 7', id: 'FOH · Ch 7' },
+      sub:   { en: 'MG166CX via Snake Box', id: 'MG166CX lewat Snake Box' },
+      role:  { en: 'Main mixer input Ch 7, reached through the Snake Box. The DI box XLR feeds it exactly as today.',
+               id: 'Input mixer utama Ch 7, lewat Snake Box. XLR dari DI box masuk ke sini sama seperti sekarang.' },
+      notes: [], pitfalls: [5] },
+
+    /* --- Gitar lane --- */
+    { id: 'src_gitar', musician: 'gitar', slot: 'src', kind: 'source',
+      label: { en: 'Gitar', id: 'Gitar' },
+      sub:   { en: 'Instrument', id: 'Instrumen' },
+      role:  { en: 'The guitar. Plugs into the DI box as usual. If the guitar effects have a 2nd output, that can feed the personal mixer instead of the DI Thru.',
+               id: 'Gitar. Dicolok ke DI box seperti biasa. Kalau efek gitarnya punya output kedua, itu bisa dipakai ke mixer pribadi sebagai ganti Thru dari DI.' },
+      notes: [], pitfalls: [] },
+    { id: 'di_gitar', musician: 'gitar', slot: 'di', kind: 'device',
+      label: { en: 'DI box', id: 'DI box' },
+      sub:   { en: 'XLR + Thru', id: 'XLR + Thru' },
+      role:  { en: 'DI box with a Thru output. The XLR out still goes to FOH (Ch 8), and Thru sends the same guitar signal to the personal mixer.',
+               id: 'DI box yang punya output Thru. Output XLR tetap ke FOH (Ch 8), dan Thru mengirim sinyal gitar yang sama ke mixer pribadi.' },
+      notes: [ { en: 'Hum? Try the **ground-lift** switch first.', id: 'Ada dengung? Coba switch **ground-lift** dulu.' } ],
+      pitfalls: [5] },
+    { id: 'pm_gitar', musician: 'gitar', slot: 'recv', kind: 'device',
+      label: { en: 'Personal mixer', id: 'Mixer pribadi' },
+      sub:   { en: 'Band + gitar → Phones', id: 'Band + gitar → Phones' },
+      role:  { en: 'Small personal mixer for the guitar player. The band mix (HA800 Out 4) comes into a stereo channel, the DI box Thru (or a 2nd FX out) into another channel. One fader for the band, one for the guitar; the IEM plugs into its Phones out.',
+               id: 'Mixer kecil pribadi untuk pemain gitar. Mix band (HA800 Out 4) masuk ke channel stereo, Thru dari DI box (atau output FX kedua) masuk ke channel lain. Satu fader untuk band, satu untuk gitar; IEM dicolok ke Phones mixer ini.' },
+      notes: [ { en: 'Needs at least 1 stereo line channel + 1 more channel, and a headphone output.', id: 'Minimal punya 1 channel stereo line + 1 channel lagi, dan output headphone.' } ],
+      pitfalls: [2] },
+    { id: 'iem_gitar', musician: 'gitar', slot: 'iem', kind: 'iem',
+      label: { en: 'IEM · Gitar', id: 'IEM · Gitar' },
+      sub:   { en: 'Wired in-ear', id: 'In-ear kabel' },
+      role:  { en: 'The guitar player\'s wired in-ear monitor, plugged into the personal mixer\'s Phones out. Add a headphone extension cable if needed.',
+               id: 'In-ear monitor kabel untuk pemain gitar, dicolok ke Phones mixer pribadi. Tambah kabel extension headphone kalau perlu.' },
+      notes: [ { en: 'Start at zero volume, then bring it up.', id: 'Mulai dari volume nol, baru dinaikkan.' } ],
+      pitfalls: [6] },
+    { id: 'foh_gitar', musician: 'gitar', slot: 'foh', kind: 'foh',
+      label: { en: 'FOH · Ch 8', id: 'FOH · Ch 8' },
+      sub:   { en: 'MG166CX via Snake Box', id: 'MG166CX lewat Snake Box' },
+      role:  { en: 'Main mixer input Ch 8, reached through the Snake Box. The DI box XLR feeds it exactly as today.',
+               id: 'Input mixer utama Ch 8, lewat Snake Box. XLR dari DI box masuk ke sini sama seperti sekarang.' },
+      notes: [], pitfalls: [5] },
+
+    /* --- Phase 2: spare HA800 outputs (future) ---
+       TODO: there are 5 vocal positions (Worship Leader + Singer Ch 2–5) but only 4 spare outputs (Out 5–8).
+       Decide who gets which output before Phase 2. */
+    ...[5, 6, 7, 8].map(n => ({
+      id: 'p2_' + n, phase: 2, kind: 'future',
+      label: { en: `Out ${n} · Phase 2`, id: `Out ${n} · Fase 2` },
+      sub:   { en: 'Worship Leader / Singer', id: 'Worship Leader / Singer' },
+      role:  { en: 'Spare HA800 output for Phase 2: the Worship Leader or a singer. They would get either a personal mixer plus a split of their own mic, or just the band mix with volume-only control.',
+               id: 'Output HA800 cadangan untuk Fase 2: Worship Leader atau singer. Nanti bisa dapat mixer pribadi + split dari mic sendiri, atau cukup mix band saja dengan kontrol volume.' },
+      notes: [], pitfalls: [6]
+    }))
+  ],
+
+  /* ---- Connections: from → to, signal type, cable. `tag` = short label drawn on the line. ---- */
+  connections: [
+    { from: 'mixer', to: 'snakeD', signal: 'band',
+      cable: { en: 'Group 1-2 out → Snake D (existing)', id: 'Output Group 1-2 → Snake D (sudah ada)' } },
+    { from: 'snakeD', to: 'splitter', signal: 'band',
+      cable: { en: 'Snake D XLR output → splitter female input', id: 'Output XLR Snake D → input female splitter' } },
+    // TODO: Leg A → Music Speaker reuses the cable that runs to the speaker today; confirm its length still reaches.
+    { from: 'splitter', to: 'speaker', signal: 'band', tag: { en: 'Leg A', id: 'Leg A' },
+      cable: { en: 'XLR, as today', id: 'XLR, seperti sekarang' } },
+    { from: 'splitter', to: 'adapter', signal: 'band', tag: { en: 'Leg B', id: 'Leg B' },
+      cable: { en: 'Splitter male out → XLR F end of the cable', id: 'Output male splitter → ujung XLR F kabel' } },
+    { from: 'adapter', to: 'ha800', signal: 'band',
+      cable: { en: '1/4" TS + mono-to-stereo adapter (tip + ring bridged) → stereo 1/4" input', id: '1/4" TS + adaptor mono-to-stereo (tip + ring disatukan) → input stereo 1/4"' } },
+
+    { from: 'ha800', to: 'module_drum', signal: 'band', tag: { en: 'Out 1 → Mix In', id: 'Out 1 → Mix In' },
+      cable: { en: 'TRS → TRS (or → 3.5 mm, check the module\'s jack)', id: 'TRS → TRS (atau → 3.5 mm, cek jack di modul)' } },
+    { from: 'ha800', to: 'pm_kb', signal: 'band', tag: { en: 'Out 2', id: 'Out 2' },
+      cable: { en: 'TRS → 2× TS Y-cable → stereo channel', id: 'Kabel Y TRS → 2× TS → channel stereo' } },
+    { from: 'ha800', to: 'pm_bass', signal: 'band', tag: { en: 'Out 3', id: 'Out 3' },
+      cable: { en: 'TRS → 2× TS Y-cable → stereo channel', id: 'Kabel Y TRS → 2× TS → channel stereo' } },
+    { from: 'ha800', to: 'pm_gitar', signal: 'band', tag: { en: 'Out 4', id: 'Out 4' },
+      cable: { en: 'TRS → 2× TS Y-cable → stereo channel', id: 'Kabel Y TRS → 2× TS → channel stereo' } },
+
+    // Drum
+    { from: 'module_drum', to: 'iem_drum', signal: 'iem',
+      cable: { en: 'Module Phones → IEM (+ extension if needed)', id: 'Phones modul → IEM (+ extension kalau perlu)' } },
+    // TODO: cable from the module's Main L/R to the snake is existing and not listed; assumed unchanged.
+    { from: 'module_drum', to: 'foh_drum', signal: 'foh', tag: { en: 'Main L/R', id: 'Main L/R' },
+      cable: { en: 'Main L/R → Ch 9/10, as today', id: 'Main L/R → Ch 9/10, seperti sekarang' } },
+
+    // Keyboard
+    { from: 'src_kb', to: 'pm_kb', signal: 'own', tag: { en: 'Phones out', id: 'Phones out' },
+      cable: { en: 'TRS → 2× TS Y-cable', id: 'Kabel Y TRS → 2× TS' } },
+    { from: 'src_kb', to: 'foh_kb', signal: 'foh',
+      cable: { en: 'Main L/R → Ch 11/12, as today', id: 'Main L/R → Ch 11/12, seperti sekarang' } },
+    { from: 'pm_kb', to: 'iem_kb', signal: 'iem',
+      cable: { en: 'Mixer Phones → IEM (+ extension if needed)', id: 'Phones mixer → IEM (+ extension kalau perlu)' } },
+
+    // Bass
+    { from: 'src_bass', to: 'di_bass', signal: 'own',
+      cable: { en: 'Instrument cable, as today', id: 'Kabel instrumen, seperti sekarang' } },
+    // TODO: the checklist has no cable for DI Thru → personal mixer. A standard 1/4" TS instrument cable is assumed; confirm.
+    { from: 'di_bass', to: 'pm_bass', signal: 'own', tag: { en: 'Thru', id: 'Thru' },
+      cable: { en: '1/4" TS cable from the DI Thru', id: 'Kabel 1/4" TS dari Thru DI' } },
+    { from: 'di_bass', to: 'foh_bass', signal: 'foh', tag: { en: 'XLR', id: 'XLR' },
+      cable: { en: 'XLR → Ch 7, as today', id: 'XLR → Ch 7, seperti sekarang' } },
+    { from: 'pm_bass', to: 'iem_bass', signal: 'iem',
+      cable: { en: 'Mixer Phones → IEM (+ extension if needed)', id: 'Phones mixer → IEM (+ extension kalau perlu)' } },
+
+    // Gitar
+    { from: 'src_gitar', to: 'di_gitar', signal: 'own',
+      cable: { en: 'Instrument cable, as today', id: 'Kabel instrumen, seperti sekarang' } },
+    { from: 'di_gitar', to: 'pm_gitar', signal: 'own', tag: { en: 'Thru', id: 'Thru' },
+      cable: { en: '1/4" TS cable from the DI Thru (or from a 2nd FX out)', id: 'Kabel 1/4" TS dari Thru DI (atau dari output FX kedua)' } },
+    { from: 'di_gitar', to: 'foh_gitar', signal: 'foh', tag: { en: 'XLR', id: 'XLR' },
+      cable: { en: 'XLR → Ch 8, as today', id: 'XLR → Ch 8, seperti sekarang' } },
+    { from: 'pm_gitar', to: 'iem_gitar', signal: 'iem',
+      cable: { en: 'Mixer Phones → IEM (+ extension if needed)', id: 'Phones mixer → IEM (+ extension kalau perlu)' } },
+
+    // Phase 2 (future)
+    ...[5, 6, 7, 8].map(n => ({
+      from: 'ha800', to: 'p2_' + n, signal: 'band', tag: { en: `Out ${n}`, id: `Out ${n}` },
+      cable: { en: 'To be decided in Phase 2', id: 'Ditentukan di Fase 2' }
+    }))
+  ],
+
+  /* ---- Musicians (lane order in the diagram = order here) ---- */
+  musicians: [
+    { id: 'drum', out: 1, name: { en: 'Drum', id: 'Drum' },
+      bandIn:  { en: 'HA800 Out 1 → module **Mix In**', id: 'HA800 Out 1 → **Mix In** modul' },
+      ownIn:   { en: 'The module\'s own kit sound', id: 'Suara kit dari modulnya sendiri' },
+      iemInto: { en: 'Module **Phones**', id: '**Phones** modul' },
+      control: { en: 'Band volume = the HA800 knob for Out 1. Kit volume = the module itself. No extra mixer needed.',
+                 id: 'Volume band = knob HA800 untuk Out 1. Volume kit = di modulnya sendiri. Tidak perlu mixer tambahan.' } },
+    { id: 'keyboard', out: 2, name: { en: 'Keyboard', id: 'Keyboard' },
+      bandIn:  { en: 'HA800 Out 2 → personal mixer stereo ch', id: 'HA800 Out 2 → channel stereo mixer pribadi' },
+      ownIn:   { en: 'Keyboard **Phones out** → personal mixer', id: '**Phones out** keyboard → mixer pribadi' },
+      iemInto: { en: 'Personal mixer **Phones**', id: '**Phones** mixer pribadi' },
+      control: { en: 'The keyboard player, on the personal mixer: one fader for the band mix, one for the keyboard.',
+                 id: 'Pemain keyboard sendiri, di mixer pribadi: satu fader untuk mix band, satu untuk keyboard.' } },
+    { id: 'bass', out: 3, name: { en: 'Bass', id: 'Bass' },
+      bandIn:  { en: 'HA800 Out 3 → personal mixer stereo ch', id: 'HA800 Out 3 → channel stereo mixer pribadi' },
+      ownIn:   { en: 'DI box **Thru** → personal mixer', id: '**Thru** DI box → mixer pribadi' },
+      iemInto: { en: 'Personal mixer **Phones**', id: '**Phones** mixer pribadi' },
+      control: { en: 'The bass player, on the personal mixer: one fader for the band mix, one for the bass.',
+                 id: 'Pemain bass sendiri, di mixer pribadi: satu fader untuk mix band, satu untuk bass.' } },
+    { id: 'gitar', out: 4, name: { en: 'Gitar', id: 'Gitar' },
+      bandIn:  { en: 'HA800 Out 4 → personal mixer stereo ch', id: 'HA800 Out 4 → channel stereo mixer pribadi' },
+      ownIn:   { en: 'DI box **Thru** (or 2nd FX out) → personal mixer', id: '**Thru** DI box (atau output FX kedua) → mixer pribadi' },
+      iemInto: { en: 'Personal mixer **Phones**', id: '**Phones** mixer pribadi' },
+      control: { en: 'The guitar player, on the personal mixer: one fader for the band mix, one for the guitar.',
+                 id: 'Pemain gitar sendiri, di mixer pribadi: satu fader untuk mix band, satu untuk gitar.' } }
+  ],
+
+  /* ---- Pitfalls ("Traps to avoid"). icon + optional wiring sketch (see SKETCHES below) ---- */
+  pitfalls: [
+    { n: 1, icon: 'plug', sketch: 'monoTs',
+      title:   { en: 'Mono XLR into the HA800 stereo input', id: 'XLR mono masuk ke input stereo HA800' },
+      explain: { en: 'A plain TS plug gives sound in the left ear only. A balanced XLR → TRS cable puts hot on L and cold (phase-inverted) on R, which sounds hollow.',
+                 id: 'Kalau pakai jack TS biasa, suara cuma keluar di telinga kiri. Kalau pakai kabel balanced XLR → TRS, hot masuk ke L dan cold (fasanya terbalik) masuk ke R, hasilnya suara jadi kosong (hollow).' },
+      fix:     { en: 'XLR F → 1/4" TS (pin 2 = tip, pins 1+3 = sleeve) plus a mono-to-stereo adapter bridging tip + ring. Or a custom cable with pin 2 wired to both tip and ring.',
+                 id: 'XLR F → 1/4" TS (pin 2 = tip, pin 1+3 = sleeve) + adaptor mono-to-stereo yang menyatukan tip + ring. Atau kabel custom dengan pin 2 disambung ke tip dan ring.' } },
+    { n: 2, icon: 'mute', sketch: 'cancel',
+      title:   { en: 'HA800 → personal mixer', id: 'HA800 → mixer pribadi' },
+      explain: { en: 'The same mono signal sits on L and R. Plugged into a balanced mono input, it cancels to near silence.',
+                 id: 'Sinyal mono yang sama ada di L dan R. Kalau dicolok ke input mono balanced, sinyalnya saling meniadakan sampai hampir tidak ada suara.' },
+      fix:     { en: 'Use a **TRS → 2× TS Y-cable** into a stereo channel.',
+                 id: 'Pakai **kabel Y TRS → 2× TS** ke channel stereo.' } },
+    { n: 3, icon: 'loop', sketch: 'loop',
+      title:   { en: 'Drum module feedback loop', id: 'Feedback loop di modul drum' },
+      explain: { en: 'Group 1-2 already contains the drums. If the module routes Mix In to its Main Out, the band mix loops back via Ch 9/10, then Group 1-2, then Mix In, and it howls.',
+                 id: 'Group 1-2 sudah berisi drum. Kalau modul mengarahkan Mix In ke Main Out, mix band muter balik lewat Ch 9/10, masuk Group 1-2, lalu ke Mix In lagi, dan jadi feedback (howling).' },
+      fix:     { en: 'Set Mix In to **Phones only**. The same rule applies to the keyboard: never feed the band mix into the keyboard\'s Audio In.',
+                 id: 'Atur Mix In ke **Phones saja**. Aturan yang sama untuk keyboard: jangan pernah masukkan mix band ke Audio In keyboard.' } },
+    { n: 4, icon: 'fork', sketch: 'oneGroup',
+      title:   { en: 'One XLR carries only one group', id: 'Satu XLR cuma bawa satu group' },
+      explain: { en: 'If only Group 1 goes down Snake D, channels panned right (and the R side of stereo Ch 9/10, 11/12) drop out.',
+                 id: 'Kalau cuma Group 1 yang lewat Snake D, channel yang di-pan ke kanan (dan sisi R dari channel stereo 9/10, 11/12) jadi hilang.' },
+      fix:     { en: 'Keep music channels panned **centre**, or sum Group 1+2 into the XLR.',
+                 id: 'Pan channel musik di **tengah**, atau jumlahkan (sum) Group 1+2 ke XLR itu.' } },
+    { n: 5, icon: 'hum', sketch: null,
+      title:   { en: 'Hum', id: 'Dengung (hum)' },
+      explain: { en: 'Stage gear plus a snake grounded at FOH can hum.',
+                 id: 'Alat di panggung ditambah snake yang di-ground di FOH bisa bikin dengung.' },
+      fix:     { en: 'Try the DI **ground-lift** switch first.',
+                 id: 'Coba switch **ground-lift** di DI box dulu.' } },
+    { n: 6, icon: 'ear', sketch: null,
+      title:   { en: 'Ear safety', id: 'Jaga telinga' },
+      explain: { en: 'Keep the HA800 knob at about half when it feeds personal mixers.',
+                 id: 'Knob HA800 cukup di sekitar setengah kalau output-nya masuk ke mixer pribadi.' },
+      fix:     { en: 'Start every IEM volume at **zero** and bring it up.',
+                 id: 'Selalu mulai volume IEM dari **nol**, baru dinaikkan.' } }
+  ],
+
+  /* ---- Shopping / cable checklist. `id` is the storage key: keep it stable. ---- */
+  checklist: [
+    { id: 'splitter', qty: '1×', text: { en: 'XLR splitter 1F → 2M (at Snake D output)', id: 'Splitter XLR 1F → 2M (di output Snake D)' } },
+    { id: 'xlr-ts',   qty: '1×', text: { en: 'XLR F → 1/4" TS cable + 1× mono-to-stereo (tip+ring bridged) adapter, or 1 custom cable', id: 'Kabel XLR F → 1/4" TS + 1× adaptor mono-to-stereo (tip+ring disatukan), atau 1 kabel custom' } },
+    { id: 'pmixers',  qty: '3×', text: { en: 'Personal small mixers with headphone out (Keyboard, Bass, Gitar)', id: 'Mixer kecil pribadi dengan output headphone (Keyboard, Bass, Gitar)' } },
+    { id: 'y-ha800',  qty: '3×', text: { en: 'TRS → 2× TS Y-cables (HA800 → personal mixers)', id: 'Kabel Y TRS → 2× TS (HA800 → mixer pribadi)' } },
+    { id: 'trs-drum', qty: '1×', text: { en: 'TRS → TRS (or → 3.5 mm, check the module\'s jack) cable (HA800 → drum module Mix In)', id: 'Kabel TRS → TRS (atau → 3.5 mm, cek jack di modul) (HA800 → Mix In modul drum)' } },
+    { id: 'y-kb',     qty: '1×', text: { en: 'TRS → 2× TS Y-cable (Keyboard Phones → personal mixer)', id: 'Kabel Y TRS → 2× TS (Phones keyboard → mixer pribadi)' } },
+    { id: 'di',       qty: '2×', text: { en: 'DI boxes with Thru (Bass, Gitar), if not already in use', id: 'DI box dengan Thru (Bass, Gitar), kalau belum ada' } },
+    { id: 'iem',      qty: '4×', text: { en: 'Wired IEMs + headphone extension cables as needed', id: 'IEM kabel + kabel extension headphone sesuai kebutuhan' } },
+    { id: 'power',    qty: '',   text: { en: 'Power strip at stage for the HA800 (12 V adapter) + personal mixers', id: 'Colokan listrik (power strip) di panggung untuk HA800 (adaptor 12 V) + mixer pribadi' } }
+  ],
+
+  /* ---- Diagram layouts (pixel units in SVG space). Same data, different arrangements. ---- */
+  layout: {
+    main: {
+      desktop: {
+        node: { w: 126, h: 56 },
+        // y: 'mid' = centred on the HA800; 'top' = first lane row. spanLanes = stretch over all musician lanes.
+        fixed: {
+          mixer:    { x: 20,  y: 'mid' },
+          snakeD:   { x: 188, y: 'mid' },
+          splitter: { x: 356, y: 'mid' },
+          speaker:  { x: 524, y: 'top' },
+          adapter:  { x: 524, y: 'mid' },
+          ha800:    { x: 692, spanLanes: true },
+          p2_5:     { x: 524, y: 430, h: 44 },
+          p2_6:     { x: 524, y: 486, h: 44 },
+          p2_7:     { x: 524, y: 542, h: 44 },
+          p2_8:     { x: 524, y: 598, h: 44 }
+        },
+        lanes: { x: 860, y: 30, head: 24, colPitch: 168, rowPitch: 80, padX: 14, padB: 10, gap: 12, compress: false,
+                 slots: { src: { col: 0, row: 1 }, recv: { col: 1, row: 0 }, iem: { col: 2, row: 0 }, di: { col: 1, row: 1 }, foh: { col: 2, row: 1 } } },
+        ports: { 'splitter>speaker': ['t', 'l'], 'src_kb>pm_kb': ['r', 'b'], 'module_drum>foh_drum': ['b', 'l'] },
+        bus: null,
+        tags: true
+      },
+      mobile: {
+        node: { w: 150, h: 56 },
+        fixed: {
+          mixer:    { x: 99,  y: 8 },
+          snakeD:   { x: 99,  y: 84 },
+          splitter: { x: 99,  y: 160 },
+          speaker:  { x: 12,  y: 236 },
+          adapter:  { x: 186, y: 236 },
+          ha800:    { x: 12,  y: 312, w: 324 }
+        },
+        lanes: { x: 12, y: 392, head: 26, colPitch: 174, rowPitch: 76, padX: 6, padB: 10, gap: 12, compress: true,
+                 slots: { src: { col: 0, row: 0 }, di: { col: 1, row: 0 }, foh: { col: 0, row: 1 }, recv: { col: 1, row: 1 }, iem: { col: 1, row: 2 } } },
+        phase2: { x: 12, w: 324, h: 40, pitch: 50, head: 26 },
+        ports: {},
+        bus: { from: 'ha800', x: 350 },   // HA800 outputs run down a trunk on the right edge
+        tags: false
+      }
+    },
+    existing: {
+      desktop: { node: { w: 150, h: 56 }, stage: { x: 16, y: 122 }, snake: { x: 206, y: 122 },
+                 mixer: { x: 400, y: 20, w: 150, h: 262 }, outs: { x: 650, y: 20, w: 220, h: 52, pitch: 70 }, bus: null, tags: true },
+      mobile:  { node: { w: 150, h: 52 }, stage: { x: 12, y: 8 }, snake: { x: 186, y: 8 },
+                 mixer: { x: 12, y: 88, w: 324, h: 52 }, outs: { x: 12, y: 170, w: 324, h: 50, pitch: 62 }, bus: { x: 350 }, tags: false }
+    },
+    mini: {
+      desktop: { node: { w: 118, h: 52 }, x: 8, y: 8, colPitch: 150, rowPitch: 70, compress: false,
+                 slots: { feed: { col: 0, row: 0 }, src: { col: 0, row: 1 }, recv: { col: 1, row: 0 }, iem: { col: 2, row: 0 }, di: { col: 1, row: 1 }, foh: { col: 2, row: 1 } },
+                 ports: { 'src_kb>pm_kb': ['r', 'b'], 'module_drum>foh_drum': ['b', 'l'] } },
+      mobile:  { node: { w: 150, h: 54 }, x: 8, y: 8, colPitch: 174, rowPitch: 74, compress: true,
+                 slots: { src: { col: 0, row: 0 }, di: { col: 1, row: 0 }, foh: { col: 0, row: 1 }, recv: { col: 1, row: 1 }, feed: { col: 0, row: 2 }, iem: { col: 1, row: 2 } },
+                 ports: {} }
+    }
+  }
+};
+
+/* =========================================================================
+   2. UI STRINGS — interface text in both languages.
+   ========================================================================= */
+const UI = {
+  en: {
+    docTitle: 'IEM System Design · GPdI Victory Metro Permata',
+    skip: 'Skip to content',
+    nav_aria: 'Sections',
+    nav_brand: 'IEM System',
+    nav_system: 'Existing', nav_concept: 'Concept', nav_flow: 'Signal flow', nav_musicians: 'Musicians',
+    nav_pitfalls: 'Traps', nav_checklist: 'Checklist', nav_phase2: 'Phase 2',
+    lang_group: 'Language', lang_en: 'English', lang_id: 'Bahasa Indonesia',
+
+    hero_kicker: 'GPdI Victory Metro Permata',
+    hero_title: 'IEM System Design',
+    hero_sub: 'Sound System Diagram — Phase 1: Musicians',
+    hero_date: 'November 2026',
+    hero_tagline: 'Every sound are just electricity',
+    hero_lead: 'How each musician gets their own in-ear mix, built on the music mix we already send to the stage.',
+    hero_cta_flow: 'See the signal flow',
+    hero_cta_check: 'Open the checklist',
+
+    sys_title: 'Existing System',
+    sys_lead: 'Everything starts at the main mixer at the back, a Yamaha MG166CX. Only one line changes in this project: Snake D.',
+    sys_snakebox: 'The Snake Box carries mic and instrument signals from the stage (front) to the mixer (back). Snake channels match the mixer channels.',
+    sys_inputs: 'Input channels',
+    sys_changing: 'The line we\'re changing',
+    sys_aria: 'Existing system: the stage feeds the Yamaha MG166CX through the Snake Box. Outputs: stereo XLR L&R to the audience speakers via Snake A & B, AUX 1 to the monitor speaker via Snake C, AUX 2 to live streaming, and Group 1-2 to the stage Music Speaker via Snake D, the line we are changing.',
+
+    concept_title: 'The Concept',
+    concept_lead: 'Each musician gets a wired IEM and their own “more me” control.',
+    concept_s1_t: 'Everyone hears the same band mix',
+    concept_s1_d: 'Group 1-2, the music mix we already send to the stage, now also goes to every musician\'s IEM.',
+    concept_s2_t: 'Turn yourself up',
+    concept_s2_d: 'Each musician can bring up their own instrument on top of the band mix. That\'s the “more me” control.',
+    concept_s3_t: 'The speaker stays',
+    concept_s3_d: 'The stage Music Speaker isn\'t going anywhere. Use IEM, speaker, or both.',
+    formula_band: 'Band mix', formula_own: 'Your instrument', formula_iem: 'Your IEM',
+
+    flow_title: 'IEM Signal Flow',
+    flow_lead: 'Hover or tap any box to trace its path, and click it for details. Use the buttons to follow one musician\'s chain.',
+    flow_filter_label: 'Show chain:',
+    flow_all: 'All',
+    flow_p2_show: 'Show Phase 2',
+    flow_p2_hide: 'Hide Phase 2',
+    flow_hint: 'Tip: use Tab to move between boxes and Enter to open details. Grey boxes are the existing FOH inputs.',
+    flow_aria: 'IEM signal flow diagram. Each box is a button that opens details.',
+    legend_title: 'Legend',
+    lane_out: 'HA800 Out {n}',
+    p2_lane: 'Phase 2 · spare outputs',
+    node_aria: '{label}, {sub}. Open details.',
+    node_aria_future: 'Future, Phase 2: {label}, {sub}. Open details.',
+
+    panel_close: 'Close details',
+    panel_role: 'What it does',
+    panel_conn: 'Connections',
+    panel_in: 'In from',
+    panel_out: 'Out to',
+    panel_cable: 'Cable',
+    panel_watch: 'Watch out',
+    panel_shared: 'Shared chain',
+    panel_chain: '{name} chain',
+    panel_future: 'Future · Phase 2',
+
+    mus_title: 'Per Musician',
+    mus_lead: 'What each musician plugs in, and who controls what.',
+    mus_req: 'Personal mixer requirement: at least 1 stereo line channel + 1 more channel, and a headphone output.',
+    th_band: 'Band mix in', th_own: 'Own instrument in', th_iem: 'IEM plugs into', th_ctrl: 'Who controls what',
+    mini_aria: 'Mini diagram of the {name} chain',
+
+    pit_title: 'Traps to Avoid',
+    pit_lead: 'Six things that can go wrong, and how to avoid them.',
+    pit_num: 'Trap {n}',
+    pit_fix: 'Fix',
+    sketch_aria: 'Wiring sketch for trap {n}',
+
+    chk_title: 'Shopping & Cable Checklist',
+    chk_lead: 'Tick items off as you buy or prepare them. Your ticks are saved on this device.',
+    chk_progress: '{n} / {t} done',
+    chk_progress_aria: 'Checklist progress',
+    chk_reset: 'Reset',
+
+    p2_title: 'Phase 2',
+    p2_lead: 'The 4 spare HA800 outputs (Out 5–8) can go to the Worship Leader and singers later. Each would get either:',
+    p2_opt1: 'a personal mixer plus a split of their own mic, or',
+    p2_opt2: 'just the band mix, with volume-only control.',
+    p2_btn_show: 'Show Phase 2 on the diagram',
+    p2_btn_hide: 'Hide Phase 2 on the diagram',
+
+    footer: 'Antony2ndBrain · Presented by Antony Laurence Cornelis'
+  },
+  id: {
+    docTitle: 'Desain Sistem IEM · GPdI Victory Metro Permata',
+    skip: 'Langsung ke konten',
+    nav_aria: 'Bagian',
+    nav_brand: 'Sistem IEM',
+    nav_system: 'Sistem sekarang', nav_concept: 'Konsep', nav_flow: 'Alur sinyal', nav_musicians: 'Pemain',
+    nav_pitfalls: 'Jebakan', nav_checklist: 'Checklist', nav_phase2: 'Fase 2',
+    lang_group: 'Bahasa', lang_en: 'English', lang_id: 'Bahasa Indonesia',
+
+    hero_kicker: 'GPdI Victory Metro Permata',
+    hero_title: 'Desain Sistem IEM',
+    hero_sub: 'Diagram Sound System — Fase 1: Pemain Musik',
+    hero_date: 'November 2026',
+    hero_tagline: 'Every sound are just electricity',
+    hero_lead: 'Cara supaya tiap pemain musik punya mix in-ear sendiri, memakai mix musik yang selama ini sudah dikirim ke panggung.',
+    hero_cta_flow: 'Lihat alur sinyal',
+    hero_cta_check: 'Buka checklist',
+
+    sys_title: 'Sistem yang Sekarang',
+    sys_lead: 'Semua berawal dari mixer utama di belakang, Yamaha MG166CX. Di project ini cuma satu jalur yang berubah: Snake D.',
+    sys_snakebox: 'Snake Box membawa sinyal mic dan instrumen dari panggung (depan) ke mixer (belakang). Nomor channel di snake sama dengan channel di mixer.',
+    sys_inputs: 'Channel input',
+    sys_changing: 'Jalur yang kita ubah',
+    sys_aria: 'Sistem sekarang: panggung masuk ke Yamaha MG166CX lewat Snake Box. Output: XLR stereo L&R ke speaker jemaat lewat Snake A & B, AUX 1 ke speaker monitor lewat Snake C, AUX 2 ke live streaming, dan Group 1-2 ke Music Speaker panggung lewat Snake D, jalur yang kita ubah.',
+
+    concept_title: 'Konsepnya',
+    concept_lead: 'Setiap pemain musik dapat IEM kabel dan kontrol “more me” sendiri.',
+    concept_s1_t: 'Semua dengar mix band yang sama',
+    concept_s1_d: 'Group 1-2, mix musik yang selama ini dikirim ke panggung, sekarang juga masuk ke IEM tiap pemain.',
+    concept_s2_t: 'Naikkan suaramu sendiri',
+    concept_s2_d: 'Tiap pemain bisa menaikkan suara instrumennya sendiri di atas mix band. Itu yang namanya kontrol “more me”.',
+    concept_s3_t: 'Speaker tetap ada',
+    concept_s3_d: 'Music Speaker di panggung tidak dicabut. Mau pakai IEM, speaker, atau dua-duanya, silakan.',
+    formula_band: 'Mix band', formula_own: 'Instrumenmu', formula_iem: 'IEM kamu',
+
+    flow_title: 'Alur Sinyal IEM',
+    flow_lead: 'Arahkan kursor atau tap kotak mana saja untuk melihat jalurnya, klik untuk detail. Pakai tombol di bawah untuk lihat jalur satu pemain saja.',
+    flow_filter_label: 'Lihat jalur:',
+    flow_all: 'Semua',
+    flow_p2_show: 'Tampilkan Fase 2',
+    flow_p2_hide: 'Sembunyikan Fase 2',
+    flow_hint: 'Tips: pakai Tab untuk pindah antar kotak dan Enter untuk buka detail. Kotak abu-abu adalah input FOH yang sudah ada.',
+    flow_aria: 'Diagram alur sinyal IEM. Tiap kotak adalah tombol untuk membuka detail.',
+    legend_title: 'Keterangan',
+    lane_out: 'HA800 Out {n}',
+    p2_lane: 'Fase 2 · output cadangan',
+    node_aria: '{label}, {sub}. Buka detail.',
+    node_aria_future: 'Nanti, Fase 2: {label}, {sub}. Buka detail.',
+
+    panel_close: 'Tutup detail',
+    panel_role: 'Fungsinya',
+    panel_conn: 'Koneksi',
+    panel_in: 'Masuk dari',
+    panel_out: 'Keluar ke',
+    panel_cable: 'Kabel',
+    panel_watch: 'Perhatian',
+    panel_shared: 'Jalur bersama',
+    panel_chain: 'Jalur {name}',
+    panel_future: 'Nanti · Fase 2',
+
+    mus_title: 'Per Pemain',
+    mus_lead: 'Apa yang dicolok tiap pemain, dan siapa pegang kontrol apa.',
+    mus_req: 'Syarat mixer pribadi: minimal 1 channel stereo line + 1 channel lagi, dan ada output headphone.',
+    th_band: 'Masuk mix band', th_own: 'Masuk instrumen sendiri', th_iem: 'IEM dicolok ke', th_ctrl: 'Siapa pegang apa',
+    mini_aria: 'Diagram kecil jalur {name}',
+
+    pit_title: 'Jebakan yang Harus Dihindari',
+    pit_lead: 'Enam hal yang bisa bikin masalah, dan cara menghindarinya.',
+    pit_num: 'Jebakan {n}',
+    pit_fix: 'Solusi',
+    sketch_aria: 'Sketsa kabel untuk jebakan {n}',
+
+    chk_title: 'Checklist Belanja & Kabel',
+    chk_lead: 'Centang kalau barangnya sudah dibeli atau disiapkan. Centangnya tersimpan di perangkat ini.',
+    chk_progress: '{n} / {t} selesai',
+    chk_progress_aria: 'Progres checklist',
+    chk_reset: 'Reset',
+
+    p2_title: 'Fase 2',
+    p2_lead: '4 output HA800 yang masih nganggur (Out 5–8) nanti bisa dipakai Worship Leader dan singer. Masing-masing bisa dapat:',
+    p2_opt1: 'mixer pribadi + split dari mic mereka sendiri, atau',
+    p2_opt2: 'cukup mix band saja, kontrolnya cuma volume.',
+    p2_btn_show: 'Tampilkan Fase 2 di diagram',
+    p2_btn_hide: 'Sembunyikan Fase 2 di diagram',
+
+    footer: 'Antony2ndBrain · Dipresentasikan oleh Antony Laurence Cornelis'
+  }
+};
+
+/* =========================================================================
+   3. STATE + STORAGE
+   ========================================================================= */
+const KEY_LANG = 'iem-lang';
+const KEY_CHECK = 'iem-checklist-v1';
+const store = {
+  get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* storage unavailable: ignore */ } }
+};
+const state = {
+  lang: 'id',
+  filter: 'all',
+  phase2: false,
+  hover: null,
+  selected: null,
+  checked: new Set()
+};
+let panelTrigger = null;
+
+/* =========================================================================
+   4. HELPERS
+   ========================================================================= */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const $ = sel => document.querySelector(sel);
+const DEV = Object.fromEntries(SYSTEM.devices.map(d => [d.id, d]));
+const MUS = Object.fromEntries(SYSTEM.musicians.map(m => [m.id, m]));
+
+function tr(obj) {
+  if (obj == null) return '';
+  if (typeof obj === 'string') return obj;
+  return obj[state.lang] != null ? obj[state.lang] : (obj.en || '');
+}
+function ui(key, vars) {
+  let s = (UI[state.lang] && UI[state.lang][key]);
+  if (s == null) s = UI.en[key] != null ? UI.en[key] : key;
+  if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
+  return s;
+}
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  if (props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (v == null || v === false) continue;
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else e.setAttribute(k, v === true ? '' : v);
+    }
+  }
+  for (const k of kids.flat(2)) if (k != null && k !== false) e.append(k);
+  return e;
+}
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) if (v != null && v !== '') e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function svgText(parent, x, y, str, attrs) {
+  const t = svgEl('text', Object.assign({ x, y }, attrs || {}), parent);
+  t.textContent = str;
+  return t;
+}
+/* Minimal **bold** support for data strings → DocumentFragment */
+function rich(str) {
+  const frag = document.createDocumentFragment();
+  String(str).split(/(\*\*[^*]+\*\*)/g).forEach(part => {
+    if (!part) return;
+    if (part.startsWith('**') && part.endsWith('**')) frag.append(h('strong', { text: part.slice(2, -2) }));
+    else frag.append(part);
+  });
+  return frag;
+}
+const plain = str => String(str).replace(/\*\*/g, '');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const cx = n => n.x + n.w / 2;
+const cy = n => n.y + n.h / 2;
+const isVisibleDev = d => !!d && (d.phase !== 2 || state.phase2);
+
+function wrapText(str, maxChars, maxLines) {
+  const words = String(str).split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const t = cur ? cur + ' ' + w : w;
+    if (t.length > maxChars && cur) { lines.push(cur); cur = w; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > maxLines) {
+    const keep = lines.slice(0, maxLines);
+    const rest = lines.slice(maxLines - 1).join(' ');
+    keep[maxLines - 1] = rest.length > maxChars ? rest.slice(0, maxChars - 1).trimEnd() + '…' : rest;
+    return keep;
+  }
+  return lines;
+}
+
+/* Small line sample in a signal's colour + line style */
+function swatch(sigKey) {
+  const sig = SYSTEM.signals[sigKey];
+  const svg = svgEl('svg', { class: 'swatch', viewBox: '0 0 40 12', 'aria-hidden': 'true', focusable: 'false' });
+  svgEl('line', { x1: 3, y1: 6, x2: 37, y2: 6, stroke: sig.color, 'stroke-width': Math.min(sig.width, 4), 'stroke-dasharray': sig.dash, 'stroke-linecap': sig.cap }, svg);
+  return svg;
+}
+
+/* =========================================================================
+   5. GRAPH ENGINE — builds layout models from SYSTEM and draws them as SVG
+   ========================================================================= */
+const DIR = { r: [1, 0], l: [-1, 0], t: [0, -1], b: [0, 1] };
+
+/* Main IEM diagram model for a layout ('desktop' | 'mobile') */
+function buildMainModel(mode) {
+  const L = SYSTEM.layout.main[mode];
+  const LN = L.lanes;
+  const nodes = [];
+  const lanes = [];
+  const add = (d, p) => nodes.push({
+    id: d.id, x: p.x, y: p.y, w: p.w || L.node.w, h: p.h || L.node.h,
+    label: tr(d.label), sub: tr(d.sub), kind: d.kind, musician: d.musician || null, future: d.phase === 2
+  });
+
+  const maxCol = Math.max(...Object.values(LN.slots).map(s => s.col));
+  const maxRow = Math.max(...Object.values(LN.slots).map(s => s.row));
+  const laneW = maxCol * LN.colPitch + L.node.w + 2 * LN.padX;
+  const row0 = [];
+  let y = LN.y;
+
+  SYSTEM.musicians.forEach(m => {
+    const devs = SYSTEM.devices.filter(d => d.musician === m.id && d.slot && isVisibleDev(d));
+    const used = [...new Set(devs.map(d => LN.slots[d.slot].row))].sort((a, b) => a - b);
+    const rowOf = r => (LN.compress ? used.indexOf(r) : r);
+    const nRows = LN.compress ? used.length : maxRow + 1;
+    devs.forEach(d => {
+      const s = LN.slots[d.slot];
+      add(d, { x: LN.x + s.col * LN.colPitch, y: y + LN.head + rowOf(s.row) * LN.rowPitch });
+    });
+    const hgt = LN.head + (nRows - 1) * LN.rowPitch + L.node.h + LN.padB;
+    lanes.push({ x: LN.x - LN.padX, y, w: laneW, h: hgt, title: `${tr(m.name)} · ${ui('lane_out', { n: m.out })}`.toUpperCase() });
+    row0.push(y + LN.head);
+    y += hgt + LN.gap;
+  });
+
+  // Phase 2 stacked below the lanes (mobile)
+  if (L.phase2 && state.phase2) {
+    const P = L.phase2;
+    const devs = SYSTEM.devices.filter(d => d.phase === 2);
+    const hgt = P.head + (devs.length - 1) * P.pitch + P.h + LN.padB;
+    lanes.push({ x: LN.x - LN.padX, y, w: laneW, h: hgt, title: ui('p2_lane').toUpperCase(), future: true });
+    devs.forEach((d, i) => add(d, { x: P.x, y: y + P.head + i * P.pitch, w: P.w, h: P.h }));
+    y += hgt + LN.gap;
+  }
+
+  // Fixed (shared) devices
+  const spanTop = row0[0];
+  const spanBot = row0[row0.length - 1] + L.node.h;
+  for (const [id, p] of Object.entries(L.fixed)) {
+    const d = DEV[id];
+    if (!isVisibleDev(d)) continue;
+    const q = Object.assign({}, p);
+    const hh = q.h || L.node.h;
+    if (q.spanLanes) { q.y = spanTop; q.h = spanBot - spanTop; }
+    if (q.y === 'mid') q.y = (spanTop + spanBot) / 2 - hh / 2;
+    if (q.y === 'top') q.y = spanTop;
+    add(d, q);
+  }
+
+  const ids = new Set(nodes.map(n => n.id));
+  const edges = SYSTEM.connections
+    .filter(c => ids.has(c.from) && ids.has(c.to))
+    .map(c => ({
+      from: c.from, to: c.to, signal: c.signal,
+      tag: c.tag ? tr(c.tag) : null,
+      ports: (L.ports && L.ports[`${c.from}>${c.to}`]) || null,
+      bus: L.bus && L.bus.from === c.from ? L.bus.x : null,
+      future: DEV[c.to].phase === 2
+    }));
+  return fitModel({ nodes, edges, lanes, badges: [] }, L.bus ? L.bus.x : 0);
+}
+
+/* Existing-system diagram model (section 2) */
+function buildExistingModel(mode) {
+  const L = SYSTEM.layout.existing[mode];
+  const E = SYSTEM.existing;
+  const box = (id, p, src, kind) => ({ id, x: p.x, y: p.y, w: p.w || L.node.w, h: p.h || L.node.h, label: tr(src.label), sub: tr(src.sub), kind });
+  const nodes = [
+    box('ex_stage', L.stage, E.stage, 'source'),
+    box('ex_snake', L.snake, E.snake, 'device'),
+    box('ex_mixer', L.mixer, E.mixer, 'core')
+  ];
+  const edges = [
+    { from: 'ex_stage', to: 'ex_snake', signal: 'foh' },
+    { from: 'ex_snake', to: 'ex_mixer', signal: 'foh' }
+  ];
+  const badges = [];
+  E.outputs.forEach((o, i) => {
+    const port = tr(o.port);
+    const via = o.via ? tr(o.via) : '';
+    const n = {
+      id: 'ex_' + o.id, x: L.outs.x, y: L.outs.y + i * L.outs.pitch, w: L.outs.w, h: L.outs.h,
+      label: tr(o.dest), sub: L.tags ? port : [port, via].filter(Boolean).join(' · '),
+      kind: o.changing ? 'changing' : 'device'
+    };
+    nodes.push(n);
+    edges.push({ from: 'ex_mixer', to: n.id, signal: o.signal, tag: L.tags && via ? via : null, bus: L.bus ? L.bus.x : null, strong: !!o.changing });
+    if (o.changing) {
+      const text = ui('sys_changing');
+      const w = text.length * 6.6 + 22;
+      badges.push({ x: n.x + n.w - w, y: n.y + n.h + 6, w, h: 20, text });
+    }
+  });
+  return fitModel({ nodes, edges, lanes: [], badges }, L.bus ? L.bus.x : 0);
+}
+
+/* Mini diagram model for one musician card */
+function buildMiniModel(m, mode) {
+  const L = SYSTEM.layout.mini[mode];
+  const devs = SYSTEM.devices.filter(d => d.musician === m.id && d.slot);
+  const used = [...new Set([...devs.map(d => L.slots[d.slot].row), L.slots.feed.row])].sort((a, b) => a - b);
+  const rowOf = r => (L.compress ? used.indexOf(r) : r);
+  const pos = slot => ({ x: L.x + L.slots[slot].col * L.colPitch, y: L.y + rowOf(L.slots[slot].row) * L.rowPitch, w: L.node.w, h: L.node.h });
+  const ids = new Set(devs.map(d => d.id));
+  const nodes = devs.map(d => Object.assign({ id: d.id, label: tr(d.label), sub: tr(d.sub), kind: d.kind }, pos(d.slot)));
+  nodes.push(Object.assign({ id: 'feed', label: 'HA800', sub: `Out ${m.out}`, kind: 'core' }, pos('feed')));
+  const edges = SYSTEM.connections
+    .filter(c => ids.has(c.to) && (ids.has(c.from) || c.from === 'ha800'))
+    .map(c => ({ from: ids.has(c.from) ? c.from : 'feed', to: c.to, signal: c.signal, ports: L.ports[`${c.from}>${c.to}`] || null }));
+  return fitModel({ nodes, edges, lanes: [], badges: [] }, 0);
+}
+
+function fitModel(model, busX) {
+  let w = busX || 0, hgt = 0;
+  [...model.nodes, ...model.lanes, ...model.badges].forEach(b => { w = Math.max(w, b.x + b.w); hgt = Math.max(hgt, b.y + b.h); });
+  model.width = Math.ceil(w + 12);
+  model.height = Math.ceil(hgt + 12);
+  return model;
+}
+
+/* Work out where each line leaves/enters a box, then build the path */
+function routeEdges(model) {
+  const byId = Object.fromEntries(model.nodes.map(n => [n.id, n]));
+  const ends = new Map();
+  const push = (key, v) => { if (!ends.has(key)) ends.set(key, []); ends.get(key).push(v); };
+
+  const sides = model.edges.map((e, i) => {
+    if (e.bus != null) return null;
+    const a = byId[e.from], b = byId[e.to];
+    let s1, s2;
+    if (e.ports) [s1, s2] = e.ports;
+    else if (a.x < b.x + b.w && b.x < a.x + a.w) { s1 = cy(b) > cy(a) ? 'b' : 't'; s2 = s1 === 'b' ? 't' : 'b'; }
+    else { s1 = cx(b) > cx(a) ? 'r' : 'l'; s2 = s1 === 'r' ? 'l' : 'r'; }
+    push(a.id + '|' + s1, { i, end: 0, other: b });
+    push(b.id + '|' + s2, { i, end: 1, other: a });
+    return [s1, s2];
+  });
+
+  const pts = model.edges.map(() => [null, null]);
+  ends.forEach((list, key) => {
+    const [id, side] = key.split('|');
+    const n = byId[id];
+    const vert = side === 'l' || side === 'r';
+    const start = vert ? n.y : n.x;
+    const len = vert ? n.h : n.w;
+    const big = o => (vert ? o.h : o.w) > 200;
+    // reference coordinate of the other box: its centre, or (if it is a tall/wide box) the point nearest this one
+    const ref = o => vert
+      ? (big(o) ? clamp(cy(n), o.y, o.y + o.h) : cy(o))
+      : (big(o) ? clamp(cx(n), o.x, o.x + o.w) : cx(o));
+    list.sort((p, q) => ref(p.other) - ref(q.other));
+    list.forEach((p, k) => {
+      const pos = len > 200
+        ? clamp(ref(p.other), start + 14, start + len - 14)
+        : start + len * (k + 1) / (list.length + 1);
+      pts[p.i][p.end] = side === 'r' ? [n.x + n.w, pos] : side === 'l' ? [n.x, pos] : side === 't' ? [pos, n.y] : [pos, n.y + n.h];
+    });
+  });
+
+  return model.edges.map((e, i) => {
+    const a = byId[e.from], b = byId[e.to];
+    if (e.bus != null) return { d: busPath(a.x + a.w, cy(a), e.bus, b.x + b.w, cy(b)), mid: null };
+    const [p1, p2] = pts[i];
+    const [s1, s2] = sides[i];
+    const dist = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+    const k = clamp(dist * 0.42, 18, 90);
+    const c1 = [p1[0] + DIR[s1][0] * k, p1[1] + DIR[s1][1] * k];
+    const c2 = [p2[0] + DIR[s2][0] * k, p2[1] + DIR[s2][1] * k];
+    const mid = [0, 1].map(j => (p1[j] + 3 * c1[j] + 3 * c2[j] + p2[j]) / 8);
+    const f = p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+    return { d: `M${f(p1)} C${f(c1)} ${f(c2)} ${f(p2)}`, mid };
+  });
+}
+
+function busPath(x1, y1, bx, x2, y2) {
+  const r = 8;
+  const sg = Math.sign(y2 - y1) || 1;
+  if (Math.abs(y2 - y1) < 2 * r) return `M${x1} ${y1} H${bx} V${y2} H${x2}`;
+  return `M${x1} ${y1} H${bx - r} Q${bx} ${y1} ${bx} ${y1 + sg * r} V${y2 - sg * r} Q${bx} ${y2} ${bx - r} ${y2} H${x2}`;
+}
+
+/* Draw a model into an <svg>. opt: { prefix, interactive, tags } */
+function drawGraph(svg, model, opt) {
+  svg.textContent = '';
+  svg.setAttribute('viewBox', `0 0 ${model.width} ${model.height}`);
+  const defs = svgEl('defs', null, svg);
+  Object.entries(SYSTEM.signals).forEach(([k, sig]) => {
+    const m = svgEl('marker', { id: `${opt.prefix}-arrow-${k}`, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 10, markerHeight: 10, markerUnits: 'userSpaceOnUse', orient: 'auto' }, defs);
+    svgEl('path', { d: 'M0,0 L10,5 L0,10 z', fill: sig.color }, m);
+  });
+
+  const gLanes = svgEl('g', { class: 'lanes', 'aria-hidden': 'true' }, svg);
+  model.lanes.forEach(l => {
+    const g = svgEl('g', { class: 'lane' + (l.future ? ' lane-future' : '') }, gLanes);
+    svgEl('rect', { x: l.x, y: l.y, width: l.w, height: l.h, rx: 12 }, g);
+    svgText(g, l.x + 12, l.y + 17, l.title, { class: 'lane-title' });
+  });
+
+  const gEdges = svgEl('g', { class: 'edges', 'aria-hidden': 'true' }, svg);
+  const gTags = svgEl('g', { class: 'tags', 'aria-hidden': 'true' }, svg);
+  const gNodes = svgEl('g', { class: 'nodes' }, svg);
+
+  const geo = routeEdges(model);
+  model.edges.forEach((e, i) => {
+    const sig = SYSTEM.signals[e.signal];
+    const r = geo[i];
+    const g = svgEl('g', { class: `edge sig-${e.signal}${e.future ? ' is-future' : ''}${e.strong ? ' edge-strong' : ''}`, 'data-from': e.from, 'data-to': e.to }, gEdges);
+    svgEl('path', {
+      d: r.d, fill: 'none', stroke: sig.color, 'stroke-width': sig.width,
+      'stroke-dasharray': sig.dash, 'stroke-linecap': sig.cap, 'stroke-linejoin': 'round',
+      'marker-end': `url(#${opt.prefix}-arrow-${e.signal})`
+    }, g);
+    if (opt.tags && e.tag && r.mid) {
+      const tw = e.tag.length * 6.2 + 14;
+      const tg = svgEl('g', { class: 'edge-tag' + (e.future ? ' is-future' : ''), 'data-from': e.from, 'data-to': e.to }, gTags);
+      svgEl('rect', { x: (r.mid[0] - tw / 2).toFixed(1), y: (r.mid[1] - 9).toFixed(1), width: tw.toFixed(1), height: 18, rx: 9, stroke: sig.color }, tg);
+      svgText(tg, r.mid[0].toFixed(1), (r.mid[1] + 3.8).toFixed(1), e.tag, { fill: sig.color });
+    }
+  });
+
+  model.badges.forEach(b => {
+    const g = svgEl('g', { class: 'badge', 'aria-hidden': 'true' }, gNodes);
+    svgEl('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: b.h / 2 }, g);
+    svgText(g, b.x + b.w / 2, b.y + 14, b.text);
+  });
+
+  model.nodes.forEach(n => drawNode(gNodes, n, opt));
+}
+
+function drawNode(parent, n, opt) {
+  const g = svgEl('g', { class: `node kind-${n.kind}`, 'data-id': n.id, transform: `translate(${n.x} ${n.y})` }, parent);
+  if (opt.interactive) {
+    g.setAttribute('tabindex', '0');
+    g.setAttribute('role', 'button');
+    g.setAttribute('aria-label', ui(n.future ? 'node_aria_future' : 'node_aria', { label: n.label, sub: n.sub }));
+  }
+  svgEl('rect', { class: 'node-ring', x: -5, y: -5, width: n.w + 10, height: n.h + 10, rx: 12 }, g);
+  svgEl('rect', { class: 'node-box', width: n.w, height: n.h, rx: 9 }, g);
+
+  const LS = 13, SS = 10.5;
+  const tall = n.h > 100;
+  let labelLines = wrapText(n.label, Math.floor((n.w - 12) / (LS * 0.56)), tall ? 3 : 2);
+  let subLines = n.sub ? wrapText(n.sub, Math.floor((n.w - 10) / (SS * 0.52)), tall ? 4 : 2) : [];
+  const lh1 = LS + 3, lh2 = SS + 3;
+  while (labelLines.length * lh1 + subLines.length * lh2 > n.h - 6 && subLines.length) subLines.pop();
+  const total = labelLines.length * lh1 + subLines.length * lh2;
+  let y = (n.h - total) / 2;
+  const tx = n.w / 2;
+  labelLines.forEach(line => { svgText(g, tx, (y + LS).toFixed(1), line, { class: 'node-label', 'text-anchor': 'middle' }); y += lh1; });
+  subLines.forEach(line => { svgText(g, tx, (y + SS + 0.5).toFixed(1), line, { class: 'node-sub', 'text-anchor': 'middle' }); y += lh2; });
+}
+
+/* ---- Path tracing (hover / select / filter) ---- */
+const OUT = {}, IN = {};
+SYSTEM.connections.forEach(c => {
+  (OUT[c.from] = OUT[c.from] || []).push(c.to);
+  (IN[c.to] = IN[c.to] || []).push(c.from);
+});
+function walk(start, adj, set) {
+  const stack = [start];
+  while (stack.length) {
+    const id = stack.pop();
+    (adj[id] || []).forEach(n => { if (!set.has(n)) { set.add(n); stack.push(n); } });
+  }
+  return set;
+}
+function pathSet(id) {
+  const set = new Set([id]);
+  walk(id, IN, set);
+  walk(id, OUT, set);
+  return set;
+}
+function filterSet(mid) {
+  const set = new Set();
+  SYSTEM.devices.filter(d => d.musician === mid).forEach(d => { set.add(d.id); walk(d.id, IN, set); });
+  return set;
+}
+function activeSet() {
+  const id = state.hover || state.selected;
+  if (id) return pathSet(id);
+  if (state.filter !== 'all') return filterSet(state.filter);
+  return null;
+}
+function applyHighlight() {
+  const set = activeSet();
+  document.querySelectorAll('.diagram-main').forEach(svg => {
+    svg.classList.toggle('is-tracing', !!set);
+    svg.querySelectorAll('.node').forEach(n => {
+      n.classList.toggle('is-hot', !!set && set.has(n.dataset.id));
+      n.classList.toggle('is-selected', n.dataset.id === state.selected);
+    });
+    const layer = svg.querySelector('.edges');
+    svg.querySelectorAll('.edge, .edge-tag').forEach(e => {
+      const hot = !!set && set.has(e.dataset.from) && set.has(e.dataset.to);
+      e.classList.toggle('is-hot', hot);
+      if (hot && layer && e.classList.contains('edge')) layer.appendChild(e); // draw on top
+    });
+  });
+}
+
+/* =========================================================================
+   6. RENDERERS
+   ========================================================================= */
+function applyStaticI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = ui(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(e => { e.setAttribute('aria-label', ui(e.dataset.i18nAria)); });
+}
+
+function renderExisting() {
+  ['desktop', 'mobile'].forEach(mode => {
+    const svg = $(`#sys-${mode}`);
+    drawGraph(svg, buildExistingModel(mode), { prefix: `sys-${mode}`, interactive: false, tags: SYSTEM.layout.existing[mode].tags });
+    svg.setAttribute('aria-label', ui('sys_aria'));
+  });
+  const ul = $('#ch-list');
+  ul.textContent = '';
+  SYSTEM.existing.inputs.forEach(c => {
+    ul.append(h('li', { class: c.empty ? 'is-empty' : null }, h('span', { class: 'ch-num', text: 'Ch ' + c.ch }), h('span', { text: tr(c.name) })));
+  });
+}
+
+function renderFormula() {
+  const p = $('#formula');
+  p.textContent = '';
+  p.append(
+    h('span', { class: 'pill' }, swatch('band'), ui('formula_band')),
+    h('span', { class: 'op', 'aria-hidden': 'true', text: '+' }),
+    h('span', { class: 'pill' }, swatch('own'), ui('formula_own')),
+    h('span', { class: 'op', 'aria-hidden': 'true', text: '=' }),
+    h('span', { class: 'pill' }, swatch('iem'), ui('formula_iem'))
+  );
+}
+
+function renderLegend() {
+  const ul = $('#legend');
+  ul.textContent = '';
+  Object.entries(SYSTEM.signals).forEach(([k, sig]) => {
+    ul.append(h('li', null, swatch(k), h('span', null, h('strong', { text: tr(sig.label) }), ' ', h('small', { text: `(${tr(sig.line)})` }))));
+  });
+}
+
+function renderFilters() {
+  const wrap = $('#filters');
+  wrap.textContent = '';
+  [{ id: 'all', name: null }, ...SYSTEM.musicians].forEach(m => {
+    wrap.append(h('button', {
+      type: 'button', class: 'btn btn-ghost btn-sm', 'data-filter': m.id,
+      'aria-pressed': String(state.filter === m.id),
+      text: m.id === 'all' ? ui('flow_all') : tr(m.name)
+    }));
+  });
+}
+
+function renderDiagram() {
+  ['desktop', 'mobile'].forEach(mode => {
+    const svg = $(`#flow-${mode}`);
+    drawGraph(svg, buildMainModel(mode), { prefix: `flow-${mode}`, interactive: true, tags: SYSTEM.layout.main[mode].tags });
+    svg.setAttribute('aria-label', ui('flow_aria'));
+  });
+  applyHighlight();
+}
+
+function renderCards() {
+  const wrap = $('#cards');
+  wrap.textContent = '';
+  SYSTEM.musicians.forEach(m => {
+    const svgs = ['desktop', 'mobile'].map(mode => {
+      const svg = svgEl('svg', { class: `mini mini-${mode}`, role: 'img', 'aria-label': ui('mini_aria', { name: tr(m.name) }) });
+      drawGraph(svg, buildMiniModel(m, mode), { prefix: `mini-${mode}-${m.id}`, interactive: false, tags: false });
+      return svg;
+    });
+    const cols = [['th_band', m.bandIn], ['th_own', m.ownIn], ['th_iem', m.iemInto], ['th_ctrl', m.control]];
+    const table = h('table', { class: 'mtable' },
+      h('thead', null, h('tr', null, cols.map(([k]) => h('th', { scope: 'col', text: ui(k) })))),
+      h('tbody', null, h('tr', null, cols.map(([k, v]) => h('td', { 'data-label': ui(k) }, rich(tr(v)))))));
+    wrap.append(h('article', { class: 'card mcard', id: `m-${m.id}` },
+      h('header', { class: 'mcard-head' }, h('h3', { text: tr(m.name) }), h('span', { class: 'chip', text: ui('lane_out', { n: m.out }) })),
+      h('div', { class: 'mini-wrap paper-grid' }, svgs),
+      table));
+  });
+}
+
+/* ---- Pitfall icons + wiring sketches ---- */
+const ICONS = {
+  plug: 'M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5',
+  mute: 'M3 9h4l5-4v14l-5-4H3zM16 9l5 6M21 9l-5 6',
+  loop: 'M4 12a8 8 0 0 1 14-5.3M20 3v4h-4M20 12a8 8 0 0 1-14 5.3M4 21v-4h4',
+  fork: 'M6 3v5a5 5 0 0 0 5 5h1M18 3v5a5 5 0 0 1-5 5h-1M12 13v8',
+  hum:  'M2 12c2.5-7 5-7 5 0s2.5 7 5 0 2.5-7 5 0 2.5 7 5 0',
+  ear:  'M7 9a5 5 0 0 1 10 0c0 3-2.5 4-3 6.5a3 3 0 0 1-5.5 1.5M10 9a2 2 0 0 1 4 0c0 1.2-1 1.6-1.6 2.2'
+};
+function iconSVG(name) {
+  const svg = svgEl('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' });
+  svgEl('path', { d: ICONS[name] || ICONS.plug }, svg);
+  return svg;
+}
+const SK = {
+  box(svg, x, y, w, hh, t) { svgEl('rect', { class: 'sk-box', x, y, width: w, height: hh, rx: 6 }, svg); svgText(svg, x + w / 2, y + hh / 2 + 4, t, { class: 'sk-t' }); },
+  line(svg, x1, y1, x2, y2, color, dash) {
+    svgEl('path', { d: `M${x1} ${y1} L${x2} ${y2}`, stroke: color || '#111', 'stroke-width': 2, fill: 'none', 'stroke-dasharray': dash }, svg);
+    const a = Math.atan2(y2 - y1, x2 - x1), s = 7;
+    svgEl('path', { d: `M${x2} ${y2} L${x2 - s * Math.cos(a - .45)} ${y2 - s * Math.sin(a - .45)} L${x2 - s * Math.cos(a + .45)} ${y2 - s * Math.sin(a + .45)} z`, fill: color || '#111' }, svg);
+  },
+  mark(svg, x, y, ok) {
+    svgEl('circle', { cx: x, cy: y, r: 9, fill: ok ? '#1E7B34' : '#B42318' }, svg);
+    svgEl('path', { d: ok ? `M${x - 4} ${y} l3 3 l5 -6` : `M${x - 3.5} ${y - 3.5} l7 7 M${x + 3.5} ${y - 3.5} l-7 7`, stroke: '#fff', 'stroke-width': 2.2, fill: 'none', 'stroke-linecap': 'round' }, svg);
+  },
+  ear(svg, x, y, t, on) {
+    svgEl('circle', { cx: x, cy: y, r: 11, fill: on ? '#0B5FB0' : '#fff', stroke: on ? '#0B5FB0' : '#777', 'stroke-width': 1.8, 'stroke-dasharray': on ? null : '3 2' }, svg);
+    svgText(svg, x, y + 4, t, { class: 'sk-t', fill: on ? '#fff' : '#777' });
+  }
+};
+const SKETCHES = {
+  monoTs(svg) {
+    SK.mark(svg, 11, 26, false); SK.box(svg, 26, 13, 62, 26, 'pin 2'); SK.line(svg, 88, 26, 116, 26);
+    SK.box(svg, 116, 13, 46, 26, 'TS'); SK.line(svg, 162, 26, 190, 26); SK.ear(svg, 206, 26, 'L', true); SK.ear(svg, 236, 26, 'R', false);
+    SK.mark(svg, 11, 78, true); SK.box(svg, 26, 65, 62, 26, 'pin 2'); SK.line(svg, 88, 78, 116, 78);
+    SK.box(svg, 116, 65, 46, 26, 'T + R'); SK.line(svg, 162, 78, 190, 78); SK.ear(svg, 206, 78, 'L', true); SK.ear(svg, 236, 78, 'R', true);
+    return '0 0 256 100';
+  },
+  cancel(svg) {
+    SK.mark(svg, 11, 26, false); SK.box(svg, 26, 13, 62, 26, 'L = R'); SK.line(svg, 88, 26, 116, 26);
+    SK.box(svg, 116, 13, 70, 26, 'L − R'); svgText(svg, 222, 30, '≈ 0', { class: 'sk-t', fill: '#B42318' });
+    SK.mark(svg, 11, 82, true); SK.box(svg, 26, 69, 62, 26, 'TRS'); SK.line(svg, 88, 76, 140, 66); SK.line(svg, 88, 88, 140, 98);
+    SK.box(svg, 140, 55, 40, 22, 'L'); SK.box(svg, 140, 87, 40, 22, 'R'); svgText(svg, 222, 86, 'TS ×2', { class: 'sk-t' });
+    return '0 0 256 116';
+  },
+  loop(svg) {
+    const red = '#B42318';
+    SK.box(svg, 14, 10, 82, 26, 'Ch 9/10'); SK.box(svg, 160, 10, 82, 26, 'Group 1-2');
+    SK.box(svg, 160, 66, 82, 26, 'Mix In'); SK.box(svg, 14, 66, 82, 26, 'Main Out');
+    SK.line(svg, 96, 23, 158, 23, red, '5 3'); SK.line(svg, 201, 36, 201, 64, red, '5 3');
+    SK.line(svg, 160, 79, 98, 79, red, '5 3'); SK.line(svg, 55, 66, 55, 38, red, '5 3');
+    SK.mark(svg, 128, 51, false);
+    return '0 0 256 102';
+  },
+  oneGroup(svg) {
+    SK.box(svg, 26, 10, 74, 26, 'Group 1'); SK.mark(svg, 11, 23, true);
+    SK.box(svg, 26, 66, 74, 26, 'Group 2'); SK.mark(svg, 11, 79, false);
+    SK.line(svg, 100, 23, 150, 44); SK.line(svg, 100, 79, 150, 58, '#B42318', '5 3');
+    SK.box(svg, 150, 38, 50, 26, 'XLR'); SK.line(svg, 200, 51, 222, 51);
+    svgText(svg, 240, 55, 'D', { class: 'sk-t' });
+    return '0 0 256 102';
+  }
+};
+function sketchSVG(p) {
+  const svg = svgEl('svg', { class: 'sketch', role: 'img', 'aria-label': ui('sketch_aria', { n: p.n }) });
+  svg.setAttribute('viewBox', SKETCHES[p.sketch](svg));
+  return svg;
+}
+
+function renderPitfalls() {
+  const wrap = $('#pitfalls-list');
+  wrap.textContent = '';
+  SYSTEM.pitfalls.forEach(p => {
+    wrap.append(h('article', { class: 'card pit', id: `pit-${p.n}` },
+      h('div', { class: 'pit-head' },
+        h('span', { class: 'pit-icon' }, iconSVG(p.icon)),
+        h('div', null, h('p', { class: 'pit-num', text: ui('pit_num', { n: p.n }) }), h('h3', { text: tr(p.title) }))),
+      h('p', null, rich(tr(p.explain))),
+      h('p', { class: 'pit-fix' }, h('strong', { text: ui('pit_fix') + ': ' }), rich(tr(p.fix))),
+      p.sketch ? sketchSVG(p) : null));
+  });
+}
+
+function renderChecklist() {
+  const ul = $('#check-list');
+  ul.textContent = '';
+  SYSTEM.checklist.forEach(item => {
+    const id = `chk-${item.id}`;
+    const done = state.checked.has(item.id);
+    const input = h('input', { type: 'checkbox', id, 'data-id': item.id });
+    input.checked = done;
+    ul.append(h('li', { class: 'check-item' + (done ? ' is-done' : '') }, input,
+      h('label', { for: id }, item.qty ? h('span', { class: 'qty', text: item.qty + ' ' }) : null, rich(tr(item.text)))));
+  });
+  updateProgress();
+}
+function updateProgress() {
+  const t = SYSTEM.checklist.length;
+  const n = SYSTEM.checklist.filter(i => state.checked.has(i.id)).length;
+  const bar = $('#chk-bar');
+  bar.querySelector('span').style.width = (t ? (n / t) * 100 : 0) + '%';
+  bar.setAttribute('aria-valuemax', String(t));
+  bar.setAttribute('aria-valuenow', String(n));
+  bar.setAttribute('aria-valuetext', ui('chk_progress', { n, t }));
+  $('#chk-text').textContent = ui('chk_progress', { n, t });
+}
+function saveChecklist() { store.set(KEY_CHECK, JSON.stringify([...state.checked])); }
+function loadChecklist() {
+  try {
+    const arr = JSON.parse(store.get(KEY_CHECK) || '[]');
+    const valid = new Set(SYSTEM.checklist.map(i => i.id));
+    if (Array.isArray(arr)) arr.forEach(id => { if (valid.has(id)) state.checked.add(id); });
+  } catch (e) { /* corrupt value: start fresh */ }
+}
+
+function syncPhase2Buttons() {
+  const t = $('#p2-toggle'), s = $('#p2-show');
+  t.textContent = ui(state.phase2 ? 'flow_p2_hide' : 'flow_p2_show');
+  s.textContent = ui(state.phase2 ? 'p2_btn_hide' : 'p2_btn_show');
+  t.setAttribute('aria-pressed', String(state.phase2));
+  s.setAttribute('aria-pressed', String(state.phase2));
+}
+
+/* ---- Side panel ---- */
+function sigPill(k) {
+  return h('span', { class: 'sig-pill' }, swatch(k), tr(SYSTEM.signals[k].label));
+}
+function renderPanel() {
+  const d = DEV[state.selected];
+  if (!d) return;
+  const m = d.musician ? MUS[d.musician] : null;
+  $('#panel-kicker').textContent = d.phase === 2 ? ui('panel_future') : m ? ui('panel_chain', { name: tr(m.name) }) : ui('panel_shared');
+  $('#panel-title').textContent = tr(d.label);
+  $('#panel-sub').textContent = tr(d.sub);
+  const body = $('#panel-body');
+  body.textContent = '';
+  body.append(h('h4', { text: ui('panel_role') }), h('p', null, rich(tr(d.role))));
+
+  const conns = SYSTEM.connections.filter(c => (c.from === d.id || c.to === d.id) && isVisibleDev(DEV[c.from]) && isVisibleDev(DEV[c.to]));
+  if (conns.length) {
+    body.append(h('h4', { text: ui('panel_conn') }));
+    body.append(h('ul', { class: 'conn-list' }, conns.map(c => {
+      const incoming = c.to === d.id;
+      const other = DEV[incoming ? c.from : c.to];
+      return h('li', { class: 'conn' },
+        h('div', { class: 'conn-top' },
+          h('span', { class: 'conn-dir', text: ui(incoming ? 'panel_in' : 'panel_out') }),
+          h('button', { type: 'button', class: 'conn-dev', 'data-goto': other.id, text: tr(other.label) })),
+        h('div', { class: 'conn-meta' },
+          sigPill(c.signal),
+          c.cable ? h('span', null, h('strong', { text: ui('panel_cable') + ': ' }), tr(c.cable)) : null));
+    })));
+  }
+
+  const notes = (d.notes || []).map(n => h('li', null, rich(tr(n))));
+  const pits = (d.pitfalls || []).map(n => {
+    const p = SYSTEM.pitfalls.find(x => x.n === n);
+    return p ? h('li', null, h('a', { href: `#pit-${n}`, class: 'pit-link', text: `${ui('pit_num', { n })}: ${tr(p.title)}` })) : null;
+  });
+  if (notes.length || pits.length) {
+    body.append(h('h4', { class: 'warn-h', text: ui('panel_watch') }), h('ul', { class: 'watch-list' }, notes, pits));
+  }
+}
+function openPanel(id, trigger) {
+  if (!DEV[id]) return;
+  state.selected = id;
+  if (trigger) panelTrigger = trigger;
+  renderPanel();
+  const panel = $('#panel');
+  panel.classList.add('open');
+  panel.scrollTop = 0;
+  applyHighlight();
+  $('#panel-close').focus({ preventScroll: true });
+}
+function closePanel(restoreFocus) {
+  const panel = $('#panel');
+  if (!panel.classList.contains('open')) return;
+  panel.classList.remove('open');
+  const id = state.selected;
+  state.selected = null;
+  applyHighlight();
+  if (restoreFocus) {
+    let t = panelTrigger && document.contains(panelTrigger) ? panelTrigger : null;
+    if (!t && id) t = [...document.querySelectorAll(`.diagram-main .node[data-id="${id}"]`)].find(n => n.getClientRects().length);
+    if (t) t.focus({ preventScroll: true });
+  }
+  panelTrigger = null;
+}
+
+/* ---- Language ---- */
+function setLanguage(lang) {
+  state.lang = lang === 'en' ? 'en' : 'id';
+  store.set(KEY_LANG, state.lang);
+  document.documentElement.lang = state.lang;
+  document.title = ui('docTitle');
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === state.lang)));
+  renderAll();
+}
+
+function renderAll() {
+  applyStaticI18n();
+  renderExisting();
+  renderFormula();
+  renderLegend();
+  renderFilters();
+  syncPhase2Buttons();
+  renderDiagram();
+  renderCards();
+  renderPitfalls();
+  renderChecklist();
+  if (state.selected) renderPanel();
+}
+
+/* =========================================================================
+   7. INTERACTIONS
+   ========================================================================= */
+function setHover(id) {
+  if (state.hover === id) return;
+  state.hover = id;
+  applyHighlight();
+}
+function setPhase2(on) {
+  state.phase2 = on;
+  if (!on && state.selected && DEV[state.selected].phase === 2) closePanel(false);
+  syncPhase2Buttons();
+  renderDiagram();
+  if (state.selected) renderPanel();
+}
+
+function bindDiagram(svg) {
+  svg.addEventListener('pointerover', e => { const n = e.target.closest('.node'); if (n) setHover(n.dataset.id); });
+  svg.addEventListener('pointerout', e => {
+    const n = e.target.closest('.node');
+    if (n && !(e.relatedTarget && n.contains(e.relatedTarget))) setHover(null);
+  });
+  svg.addEventListener('focusin', e => { const n = e.target.closest('.node'); if (n) setHover(n.dataset.id); });
+  svg.addEventListener('focusout', () => setHover(null));
+  svg.addEventListener('click', e => { const n = e.target.closest('.node'); if (n) openPanel(n.dataset.id, n); });
+  svg.addEventListener('keydown', e => {
+    const n = e.target.closest('.node');
+    if (n && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openPanel(n.dataset.id, n); }
+  });
+}
+
+function bindEvents() {
+  document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => setLanguage(b.dataset.lang)));
+
+  $('#filters').addEventListener('click', e => {
+    const b = e.target.closest('[data-filter]');
+    if (!b) return;
+    state.filter = b.dataset.filter;
+    $('#filters').querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.filter === state.filter)));
+    applyHighlight();
+  });
+
+  $('#p2-toggle').addEventListener('click', () => setPhase2(!state.phase2));
+  $('#p2-show').addEventListener('click', () => {
+    setPhase2(!state.phase2);
+    if (state.phase2) $('#flow').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  });
+
+  document.querySelectorAll('.diagram-main').forEach(bindDiagram);
+
+  $('#panel-close').addEventListener('click', () => closePanel(true));
+  $('#panel-body').addEventListener('click', e => {
+    const go = e.target.closest('[data-goto]');
+    if (go) { openPanel(go.dataset.goto); return; }
+    if (e.target.closest('.pit-link')) closePanel(false);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(true); });
+  document.addEventListener('click', e => {
+    if (!$('#panel').classList.contains('open')) return;
+    if (e.target.closest('#panel') || e.target.closest('.diagram-main .node')) return;
+    closePanel(false);
+  });
+
+  $('#check-list').addEventListener('change', e => {
+    const input = e.target.closest('input[type="checkbox"]');
+    if (!input) return;
+    const id = input.dataset.id;
+    if (input.checked) state.checked.add(id); else state.checked.delete(id);
+    input.closest('.check-item').classList.toggle('is-done', input.checked);
+    saveChecklist();
+    updateProgress();
+  });
+  $('#chk-reset').addEventListener('click', () => {
+    state.checked.clear();
+    saveChecklist();
+    renderChecklist();
+  });
+
+  // Print always uses the desktop diagram; drop transient highlights first
+  window.addEventListener('beforeprint', () => { state.hover = null; applyHighlight(); });
+}
+
+/* =========================================================================
+   8. INIT
+   ========================================================================= */
+function init() {
+  const saved = store.get(KEY_LANG);
+  loadChecklist();
+  bindEvents();
+  setLanguage(saved === 'en' || saved === 'id' ? saved : 'id');
+}
+init();
+</script>
+</body>
+</html>
